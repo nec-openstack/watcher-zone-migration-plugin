@@ -11,12 +11,12 @@ LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class ZoneMigrationStrategy(base.BaseStrategy):
+class ParallelMigrationStrategy(base.BaseStrategy):
 
     NOP = "nop"
 
     def __init__(self, config, osc=None):
-        super(ZoneMigrationStrategy, self).__init__(config, osc)
+        super(ParallelMigrationStrategy, self).__init__(config, osc)
 
     def pre_execute(self):
         pass
@@ -41,15 +41,15 @@ class ZoneMigrationStrategy(base.BaseStrategy):
 
     @classmethod
     def get_name(cls):
-        return "zone_migration"
+        return "parallel_migration"
 
     @classmethod
     def get_display_name(cls):
-        return _("Zone migration strategy")
+        return _("Parallel migration strategy")
 
     @classmethod
     def get_translatable_display_name(cls):
-        return "Zone migration strategy"
+        return "Parallel migration strategy"
 
     @classmethod
     def get_schema(cls):
@@ -67,11 +67,3 @@ class ZoneMigrationStrategy(base.BaseStrategy):
                 }
             }
         }
-     
-       
-
-
-
-    
-
-
