@@ -13,7 +13,7 @@ LOG = log.getLogger(__name__)
 @six.add_metaclass(abc.ABCMeta)
 class ParallelMigrationStrategy(base.BaseStrategy):
 
-    NOP = "nop"
+    NOP = "my_message"
 
     def __init__(self, config, osc=None):
         super(ParallelMigrationStrategy, self).__init__(config, osc)
