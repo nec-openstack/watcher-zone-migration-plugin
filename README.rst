@@ -9,9 +9,6 @@ Please fill here a long description which must be at least 3 lines wrapped on
 Note that this is a hard requirement.
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/zone_migration
-* Source: http://git.openstack.org/cgit/openstack/zone_migration
-* Bugs: http://bugs.launchpad.net/zone_migration
 
 Features
 --------
