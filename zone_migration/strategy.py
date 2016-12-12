@@ -18,6 +18,8 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     ACTIVE = "active"
     STOP = "stop"
     LIVE_MIGRATION = "live_migration"
+    STATUS = "status"
+    DST_HOSTNAME = "dst_hostname"
 
     def __init__(self, config, osc=None):
         super(ParallelMigrationStrategy, self).__init__(config, osc)
@@ -28,13 +30,16 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     def do_execute(self):
         params = self.input_parameters.params
         for key, value in params.iteritems():
-            for resource_id, resource_status in value.items():
+            for resource_id, dict in value.items():
+                resource_status = dict[self.STATUS]
+                dst_hostname = dict[self.DST_HOSTNAME]
                 if key == self.VM:
                     if resource_status == self.ACTIVE:
                         # do live migration
-                        self._live_migration(resource_id)
+                        self._live_migration(resource_id, dst_hostname)
                     else:
                         # do cold migration
+                        # cold migration can not specify dest_hostname
                         self._cold_migration(resource_id)
                 elif key == self.STORAGE:
                     if resource_status == self.ACTIVE:
@@ -44,11 +49,12 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                         # do cinder migrate
                         self._cinder_migrate(resource_id)
 
-    def _live_migration(self, resource_id):
+    def _live_migration(self, resource_id, dst_hostname):
+        parameters = {self.DST_HOSTNAME: dst_hostname}
         self.solution.add_action(
             action_type=self.LIVE_MIGRATION,
             resource_id=resource_id,
-            input_parameters={})
+            input_parameters=parameters)
 
     def _cold_migration(self, resource_id):
         pass
@@ -87,11 +93,17 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                     "type": "object",
                     "default":
                         {"vm":
-                            {"instance_id1": "active",
-                             "instance_id2": "stop"},
+                            {"instance_id1":
+                                {"status": "active",
+                                 "dest_hostname": "vm_dest_hostname1"},
+                             "instance_id2":
+                                {"status": "stop"}},
                          "storage":
-                            {"cinder_uuid1": "active",
-                             "cinder_uuid2": "stop"}}
+                            {"cinder_id1":
+                                {"status": "active",
+                                 "dest_hostname": "strorage_dest_hostname1"},
+                             "cinder_id2":
+                                {"status": "stop"}}}
                     }
                 }
             }
