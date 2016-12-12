@@ -27,7 +27,7 @@ class LiveMigrationAction(base.BaseAction):
     def schema(self):
         return voluptuous.Schema({
             voluptuous.Required(self.RESOURCE_ID): self.check_resource_id,
-            voluptuous.Required(self.DST_HOSTNAME): voluptuous.Any(*six.string_types)
+            self.DST_HOSTNAME: voluptuous.Any(None, *six.string_types)
         })
 
     @property

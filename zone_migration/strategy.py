@@ -31,8 +31,8 @@ class ParallelMigrationStrategy(base.BaseStrategy):
         params = self.input_parameters.params
         for key, value in params.iteritems():
             for resource_id, dict in value.items():
-                resource_status = dict[self.STATUS]
-                dst_hostname = dict[self.DST_HOSTNAME]
+                resource_status = dict.get(self.STATUS)
+                dst_hostname = dict.get(self.DST_HOSTNAME)
                 if key == self.VM:
                     if resource_status == self.ACTIVE:
                         # do live migration
