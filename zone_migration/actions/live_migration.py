@@ -61,6 +61,8 @@ class LiveMigrationAction(base.BaseAction):
                     time.sleep(1)
                     retry -= 1
                 host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+                if source_hostname == host_name:
+                    return False
                 LOG.debug(
                     "Live migration succeeded : "
                     "instance %s is now on host '%s'." % (instance_id, host_name))
