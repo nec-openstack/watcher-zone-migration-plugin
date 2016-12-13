@@ -101,7 +101,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                                 {"status": "active",
                                  "dest_hostname": "vm_dest_hostname1"},
                              "instance_id2":
-                                {"status": "stop"}},
+                                {"status": "shutoff"}},
                          "storage":
                             {"cinder_id1":
                                 {"status": "active",
