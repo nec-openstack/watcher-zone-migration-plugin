@@ -16,8 +16,9 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     VM = "vm"
     STORAGE = "storage"
     ACTIVE = "active"
-    STOP = "stop"
+    SHUTOFF = "shutoff"
     LIVE_MIGRATION = "live_migration"
+    COLD_MIGRATION = "cold_migration"
     STATUS = "status"
     DST_HOSTNAME = "dst_hostname"
 
@@ -37,7 +38,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                     if resource_status == self.ACTIVE:
                         # do live migration
                         self._live_migration(resource_id, dst_hostname)
-                    else:
+                    elif resource_status == self.SHUTOFF:
                         # do cold migration
                         # cold migration can not specify dest_hostname
                         self._cold_migration(resource_id)
@@ -57,7 +58,10 @@ class ParallelMigrationStrategy(base.BaseStrategy):
             input_parameters=parameters)
 
     def _cold_migration(self, resource_id):
-        pass
+        self.solution.add_action(
+            action_type=self.COLD_MIGRATION,
+            resource_id=resource_id,
+            input_parameters={})
 
     def _volume_update(self, resource_id):
         pass
