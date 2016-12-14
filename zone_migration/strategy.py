@@ -14,11 +14,14 @@ LOG = log.getLogger(__name__)
 class ParallelMigrationStrategy(base.BaseStrategy):
 
     VM = "vm"
-    STORAGE = "storage"
+    VOLUME = "volume"
     ACTIVE = "active"
     SHUTOFF = "shutoff"
+    AVAILABLE = "available"
+    IN_USE = "in-use"
     LIVE_MIGRATION = "live_migration"
     COLD_MIGRATION = "cold_migration"
+    VOLUME_MIGRATION = "volume_migration"
     STATUS = "status"
     DST_HOSTNAME = "dst_hostname"
 
@@ -42,13 +45,14 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                         # do cold migration
                         # cold migration can not specify dest_hostname
                         self._cold_migration(resource_id)
-                elif key == self.STORAGE:
+                elif key == self.VOLUME:
                     if resource_status == self.ACTIVE:
                         # do novavolume update
                         self._volume_update(resource_id)
-                    else:
+                    elif resource_status == self.AVAILABLE:
+                        # detached volume with no snapshots
                         # do cinder migrate
-                        self._cinder_migrate(resource_id)
+                        self._volume_migrate(resource_id, dst_hostname)
 
     def _live_migration(self, resource_id, dst_hostname):
         parameters = {self.DST_HOSTNAME: dst_hostname}
@@ -66,8 +70,12 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     def _volume_update(self, resource_id):
         pass
 
-    def _cinder_migrate(self, resource_id):
-        pass
+    def _volume_migrate(self, resource_id, dst_hostname):
+        parameters = {self.DST_HOSTNAME: dst_hostname}
+        self.solution.add_action(
+            action_type=self.VOLUME_MIGRATION,
+            resource_id=resource_id,
+            input_parameters=parameters)
 
     def post_execute(self):
         pass
@@ -102,12 +110,12 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                                  "dest_hostname": "vm_dest_hostname1"},
                              "instance_id2":
                                 {"status": "shutoff"}},
-                         "storage":
+                         "volume":
                             {"cinder_id1":
-                                {"status": "active",
-                                 "dest_hostname": "strorage_dest_hostname1"},
+                                {"status": "available",
+                                 "dest_hostname": "volume_dest_hostname1"},
                              "cinder_id2":
-                                {"status": "stop"}}}
+                                {"status": "in-use"}}}
                     }
                 }
             }
