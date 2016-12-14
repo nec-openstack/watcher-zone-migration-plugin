@@ -45,6 +45,8 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                         # do cold migration
                         # cold migration can not specify dest_hostname
                         self._cold_migration(resource_id)
+                    else:
+                        raise Exception("Wrong status: %s." % resource_status)
                 elif key == self.VOLUME:
                     if resource_status == self.ACTIVE:
                         # do novavolume update
@@ -53,6 +55,10 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                         # detached volume with no snapshots
                         # do cinder migrate
                         self._volume_migrate(resource_id, dst_hostname)
+                    else:
+                        raise Exception("Wrong status: %s." % resource_status)
+                else:
+                    raise Exception("Wrong key: %s." % key)
 
     def _live_migration(self, resource_id, dst_hostname):
         parameters = {self.DST_HOSTNAME: dst_hostname}
