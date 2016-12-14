@@ -39,47 +39,40 @@ class LiveMigrationAction(base.BaseAction):
         return self.input_parameters.get(self.DST_HOSTNAME)
 
     def migrate(self, instance_id, dst_hostname, retry=120):
-        try:
-            instance = self.nova.servers.get(instance_id)
-            if not instance:
-                LOG.error("Instance not found: %s" % instance_id)
-                return False
+        instance = self.nova.servers.get(instance_id)
+        if not instance:
+            raise Exception("Instance not found: %s" % instance_id)
+        else:
+            source_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            LOG.debug(
+                "Instance %s found on host '%s'." % (
+                    instance_id, source_hostname))
+            if not dst_hostname:
+                instance.live_migrate()
             else:
-                source_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+                instance.live_migrate(host=dst_hostname)
+            while getattr(instance,
+                          'OS-EXT-SRV-ATTR:host') == source_hostname \
+                    and retry:
+                instance = self.nova.servers.get(instance.id)
                 LOG.debug(
-                    "Instance %s found on host '%s'." % (instance_id, source_hostname))
-                if not dst_hostname:
-                    instance.live_migrate()
-                else:
-                    instance.live_migrate(host=dst_hostname)
-                while getattr(instance,
-                              'OS-EXT-SRV-ATTR:host') == source_hostname \
-                        and retry:
-                    instance = self.nova.servers.get(instance.id)
-                    LOG.debug(
-                        'Waiting the migration of {0}'.format(instance))
-                    time.sleep(1)
-                    retry -= 1
-                host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-                if source_hostname == host_name:
-                    return False
-                LOG.debug(
-                    "Live migration succeeded : "
-                    "instance %s is now on host '%s'." % (instance_id, host_name))
-                return True
-        except Exception as exc:
-            LOG.exception(exc)
-            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
-                             "instance %s. Leaving instance on previous "
-                             "host."), self.instance_id)
-            return False
+                    'Waiting the migration of {0}'.format(instance))
+                time.sleep(5)
+                retry -= 1
+            host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            if source_hostname == host_name:
+                raise Exception("Live migration retry timeout: "
+                                "instance %s is now on host '%s'." % (
+                                    instance_id, host_name))
+            LOG.debug(
+                "Live migration succeeded : "
+                "instance %s is now on host '%s'." % (instance_id, host_name))
 
     def execute(self):
         return self.migrate(self.instance_id, self.dst_hostname)
 
     def revert(self):
         LOG.debug("Do nothing to Revert action of LiveMigration")
-        return True
 
     def pre_condition(self):
         self.nova = self.osc.nova()

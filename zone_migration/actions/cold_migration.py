@@ -32,47 +32,40 @@ class ColdMigrationAction(base.BaseAction):
         return self.input_parameters.get(self.RESOURCE_ID)
 
     def migrate(self, instance_id, retry=120):
-        try:
-            instance = self.nova.servers.get(instance_id)
-            if not instance:
-                LOG.error("Instance not found: %s" % instance_id)
-                return False
-            else:
-                source_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+        instance = self.nova.servers.get(instance_id)
+        if not instance:
+            raise Exception("Instance not found: %s" % instance_id)
+        else:
+            source_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            LOG.debug(
+                "Instance %s found on host '%s'." % (
+                    instance_id, source_hostname))
+            instance.migrate()
+            while getattr(instance,
+                          'status') != self.VERIFY_RESIZE \
+                    and retry:
+                instance = self.nova.servers.get(instance.id)
                 LOG.debug(
-                    "Instance %s found on host '%s'." % (instance_id, source_hostname))
-                instance.migrate()
-                while getattr(instance,
-                              'status') != self.VERIFY_RESIZE \
-                        and retry:
-                    instance = self.nova.servers.get(instance.id)
-                    LOG.debug(
-                        'Waiting the migration of {0}'.format(instance))
-                    time.sleep(1)
-                    retry -= 1
-                host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-                if source_hostname == host_name:
-                    return False
-                LOG.debug(
-                    "migration succeeded : "
-                    "instance %s is now on host '%s'." % (instance_id, host_name))
-                LOG.debug('Start confirm resize')
-                instance.confirm_resize()
-                LOG.debug('End confirm resize')
-                return True
-        except Exception as exc:
-            LOG.exception(exc)
-            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
-                             "instance %s. Leaving instance on previous "
-                             "host."), self.instance_id)
-            return False
+                    'Waiting the migration of {0}'.format(instance))
+                time.sleep(5)
+                retry -= 1
+            host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            if source_hostname == host_name:
+                raise Exception("Migration retry timeout: "
+                                "instance %s is now on host '%s'." % (
+                                    instance_id, host_name))
+            LOG.debug(
+                "Migration succeeded : "
+                "instance %s is now on host '%s'." % (instance_id, host_name))
+            LOG.debug('Start confirm resize')
+            instance.confirm_resize()
+            LOG.debug('End confirm resize')
 
     def execute(self):
         return self.migrate(self.instance_id)
 
     def revert(self):
-        LOG.debug("Do nothing to Revert action of LiveMigration")
-        return True
+        LOG.debug("Do nothing to Revert action of Migration")
 
     def pre_condition(self):
         self.nova = self.osc.nova()

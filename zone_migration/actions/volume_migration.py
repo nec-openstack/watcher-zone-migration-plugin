@@ -61,7 +61,7 @@ class VolumeMigrationAction(base.BaseAction):
                 retry -= 1
             host_name = getattr(volume, 'os-vol-host-attr:host')
             if source_hostname == host_name:
-                raise Exception("Volume migration failed : "
+                raise Exception("Volume migration retry timeout or error : "
                                 "instance %s is now on host '%s'." % (
                                     volume_id, host_name))
             LOG.debug(
