@@ -46,7 +46,7 @@ class ParallelWorkFlowEngine(base.BaseWorkFlowEngine):
             for a in actions:
                 task = TaskFlowActionContainer(a, self)
                 flow.add(task)
-            executor = futurist.GreenThreadPoolExecutor(max_workers=5)
+            executor = futurist.GreenThreadPoolExecutor(max_workers=100)
             e = engines.load(flow, engine='parallel', executor=executor)
             e.run()
 
