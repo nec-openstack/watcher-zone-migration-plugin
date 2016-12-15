@@ -22,7 +22,10 @@ from taskflow import engines
 from taskflow.patterns import graph_flow as gf
 from taskflow import task
 
-from watcher._i18n import _LE, _LW, _LC
+from watcher._i18n import _LC
+from watcher._i18n import _LE
+from watcher._i18n import _LW
+
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
 from watcher import objects
