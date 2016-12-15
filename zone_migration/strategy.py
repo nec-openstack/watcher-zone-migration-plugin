@@ -1,3 +1,16 @@
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
 import abc
 
 import six
@@ -22,8 +35,10 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     LIVE_MIGRATION = "live_migration"
     COLD_MIGRATION = "cold_migration"
     VOLUME_MIGRATION = "volume_migration"
+    VOLUME_UPDATE = "volume_update"
     STATUS = "status"
     DST_HOSTNAME = "dst_hostname"
+    ATTACHMENT_ID = "attachment_id"
 
     def __init__(self, config, osc=None):
         super(ParallelMigrationStrategy, self).__init__(config, osc)
@@ -37,6 +52,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
             for resource_id, dict in value.items():
                 resource_status = dict.get(self.STATUS)
                 dst_hostname = dict.get(self.DST_HOSTNAME)
+                attachment_id = dict.get(self.ATTACHMENT_ID)
                 if key == self.VM:
                     if resource_status == self.ACTIVE:
                         # do live migration
@@ -50,7 +66,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                 elif key == self.VOLUME:
                     if resource_status == self.ACTIVE:
                         # do novavolume update
-                        self._volume_update(resource_id)
+                        self._volume_update(resource_id, attachment_id)
                     elif resource_status == self.AVAILABLE:
                         # detached volume with no snapshots
                         # do cinder migrate
@@ -73,8 +89,12 @@ class ParallelMigrationStrategy(base.BaseStrategy):
             resource_id=resource_id,
             input_parameters={})
 
-    def _volume_update(self, resource_id):
-        pass
+    def _volume_update(self, resource_id, attachment_id):
+        parameters = {self.ATTACHMENT_ID: attachment_id}
+        self.solution.add_action(
+            action_type=self.VOLUME_UPDATE,
+            resource_id=resource_id,
+            input_parameters=parameters)
 
     def _volume_migrate(self, resource_id, dst_hostname):
         parameters = {self.DST_HOSTNAME: dst_hostname}
