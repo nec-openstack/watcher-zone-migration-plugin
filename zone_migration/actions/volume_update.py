@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import random
+import string
 import time
 
 from oslo_config import cfg
@@ -60,7 +62,7 @@ class VolumeUpdateAction(base.BaseAction):
         loader = loading.get_plugin_loader('password')
         auth = loader.load_from_options(
             auth_url=CONF.keystone_authtoken.auth_uri,
-            username=self.TEMP_USER_NAME,
+            username=self.temp_user_name,
             password=self.TEMP_USER_PASSWORD,
             project_id=self.src_volume_attr["tenant_id"])
         sess = session.Session(auth=auth)
@@ -112,14 +114,22 @@ class VolumeUpdateAction(base.BaseAction):
             "host": host
         }
 
+    @property
+    def temp_user_name(self):
+        return self.TEMP_USER_NAME + self.randomString(10)
+
     def create_temp_user(self):
         project_id = self.src_volume_attr["tenant_id"]
-        self.keystone.users.create(self.TEMP_USER_NAME,
+        self.keystone.users.create(self.temp_user_name,
                                    password=self.TEMP_USER_PASSWORD,
                                    project=self.src_volume_attr["tenant_id"])
         role = self.keystone.roles.find(name=self.TEMP_USER_ROLE)
-        user = self.keystone.users.find(name=self.TEMP_USER_NAME)
+        user = self.keystone.users.find(name=self.temp_user_name)
         self.keystone.roles.grant(role.id, user=user.id, project=project_id)
+
+    def randomString(n):
+        return ''.join([random.choice(
+            string.ascii_letters + string.digits) for i in range(n)])
 
     def execute(self):
         return self.migrate(self.server_id, self.attachment_id)
@@ -135,5 +145,5 @@ class VolumeUpdateAction(base.BaseAction):
         self.create_temp_user()
 
     def post_condition(self):
-        user = self.keystone.users.find(name=self.TEMP_USER_NAME)
+        user = self.keystone.users.find(name=self.temp_user_name)
         self.keystone.users.delete(user)
