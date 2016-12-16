@@ -64,7 +64,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                     else:
                         raise Exception("Wrong status: %s." % resource_status)
                 elif key == self.VOLUME:
-                    if resource_status == self.ACTIVE:
+                    if resource_status == self.IN_USE:
                         # do novavolume update
                         self._volume_update(resource_id, attachment_id)
                     elif resource_status == self.AVAILABLE:
@@ -140,8 +140,9 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                             {"cinder_id1":
                                 {"status": "available",
                                  "dest_hostname": "volume_dest_hostname1"},
-                             "cinder_id2":
-                                {"status": "in-use"}}}
+                             "instance_attached_to":
+                                {"status": "in-use",
+                                 "attachment_id": "src_volume_id"}}}
                     }
                 }
             }
