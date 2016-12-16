@@ -38,7 +38,6 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     VOLUME_UPDATE = "volume_update"
     STATUS = "status"
     DST_HOSTNAME = "dst_hostname"
-    ATTACHMENT_ID = "attachment_id"
 
     def __init__(self, config, osc=None):
         super(ParallelMigrationStrategy, self).__init__(config, osc)
@@ -52,7 +51,6 @@ class ParallelMigrationStrategy(base.BaseStrategy):
             for resource_id, dict in value.items():
                 resource_status = dict.get(self.STATUS)
                 dst_hostname = dict.get(self.DST_HOSTNAME)
-                attachment_id = dict.get(self.ATTACHMENT_ID)
                 if key == self.VM:
                     if resource_status == self.ACTIVE:
                         # do live migration
@@ -66,7 +64,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                 elif key == self.VOLUME:
                     if resource_status == self.IN_USE:
                         # do novavolume update
-                        self._volume_update(resource_id, attachment_id)
+                        self._volume_update(resource_id, dst_hostname)
                     elif resource_status == self.AVAILABLE:
                         # detached volume with no snapshots
                         # do cinder migrate
@@ -89,12 +87,11 @@ class ParallelMigrationStrategy(base.BaseStrategy):
             resource_id=resource_id,
             input_parameters={})
 
-    def _volume_update(self, resource_id, attachment_id):
-        parameters = {self.ATTACHMENT_ID: attachment_id}
+    def _volume_update(self, resource_id):
         self.solution.add_action(
             action_type=self.VOLUME_UPDATE,
             resource_id=resource_id,
-            input_parameters=parameters)
+            input_parameters={})
 
     def _volume_migrate(self, resource_id, dst_hostname):
         parameters = {self.DST_HOSTNAME: dst_hostname}
@@ -133,16 +130,15 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                         {"vm":
                             {"instance_id1":
                                 {"status": "active",
-                                 "dest_hostname": "vm_dest_hostname1"},
+                                 "dst_hostname": "vm_dest_hostname1"},
                              "instance_id2":
                                 {"status": "shutoff"}},
                          "volume":
                             {"cinder_id1":
                                 {"status": "available",
-                                 "dest_hostname": "volume_dest_hostname1"},
-                             "instance_attached_to":
-                                {"status": "in-use",
-                                 "attachment_id": "src_volume_id"}}}
+                                 "dst_hostname": "volume_dest_hostname1"},
+                             "cinder_id2":
+                                {"status": "in-use"}}}
                     }
                 }
             }

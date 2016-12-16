@@ -17,8 +17,12 @@ import time
 
 from oslo_config import cfg
 from oslo_log import log
+import six
 import voluptuous
 
+from cinderclient import client as local_cinder
+from keystoneauth1 import loading
+from keystoneauth1 import session
 from watcher.applier.actions import base
 from watcher.common import utils
 
@@ -26,13 +30,20 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class VolumeUpdateAction(base.BaseAction):
+def randomString(n):
+    return ''.join([random.choice(
+        string.ascii_letters + string.digits) for i in range(n)])
 
-    ATTACHMENT_ID = "attachment_id"
+
+class VolumeUpdateAction(base.BaseAction):
 
     TEMP_USER_NAME = "tempuser"
     TEMP_USER_PASSWORD = "password"
     TEMP_USER_ROLE = "Member"
+
+    def __init__(self, config, osc=None):
+        super(VolumeUpdateAction, self).__init__(config)
+        self._temp_user_name = self.TEMP_USER_NAME + randomString(10)
 
     def check_uuid(self, value):
         if (value is not None and
@@ -44,21 +55,18 @@ class VolumeUpdateAction(base.BaseAction):
     @property
     def schema(self):
         return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID): self.check_uuid,
-            voluptuous.Required(self.ATTACHMENT_ID): self.check_uuid
+            voluptuous.Required(self.RESOURCE_ID): self.check_uuid
         })
 
     @property
     def server_id(self):
-        return self.input_parameters.get(self.RESOURCE_ID)
+        return self.src_volume_attr['attachments'][0]['server_id']
 
     @property
     def attachment_id(self):
-        return self.input_parameters.get(self.ATTACHMENT_ID)
+        return self.input_parameters.get(self.RESOURCE_ID)
 
     def migrate(self, server_id, attachment_id, retry=120):
-        from keystoneauth1 import loading
-        from keystoneauth1 import session
         loader = loading.get_plugin_loader('password')
         auth = loader.load_from_options(
             auth_url=CONF.keystone_authtoken.auth_uri,
@@ -66,14 +74,16 @@ class VolumeUpdateAction(base.BaseAction):
             password=self.TEMP_USER_PASSWORD,
             project_id=self.src_volume_attr["tenant_id"])
         sess = session.Session(auth=auth)
-        from cinderclient import client as cinder
-        cinder = cinder.Client(2, session=sess)
+        cinder = local_cinder.Client(2, session=sess)
         new_volume = cinder.volumes.create(
             self.src_volume_attr["size"],
             name=self.src_volume_attr["name"],
             availability_zone=self.src_volume_attr["availability_zone"])
-        # TODO(hidekazu): wait until new_volume available
-        time.sleep(60)
+        while getattr(new_volume, 'status') != 'available':
+            new_volume = self.cinder.volumes.get(new_volume.id)
+            LOG.debug('Waiting volume creation of {0}'.format(new_volume))
+            time.sleep(5)
+        LOG.debug("Volume %s was created successfully." % new_volume)
         # do volume update
         LOG.debug(
             "Volume %s is now on host %s." % (
@@ -82,7 +92,7 @@ class VolumeUpdateAction(base.BaseAction):
             self.server_id, self.attachment_id, new_volume.id)
         while getattr(new_volume, 'status') != 'in-use' and retry:
             new_volume = self.cinder.volumes.get(new_volume.id)
-            LOG.debug('Waiting volume update of {0}'.format(new_volume))
+            LOG.debug('Waiting volume update to {0}'.format(new_volume))
             time.sleep(5)
             retry -= 1
         if getattr(new_volume, 'status') != "in-use":
@@ -105,8 +115,10 @@ class VolumeUpdateAction(base.BaseAction):
         name = getattr(volume, 'name')
         tenant_id = getattr(volume, 'os-vol-tenant-attr:tenant_id')
         availability_zone = getattr(volume, 'availability_zone')
+        attachments = getattr(volume, 'attachments')
         host = getattr(volume, 'os-vol-host-attr:host')
         return {
+            "attachments": attachments,
             "size": size,
             "name": name,
             "tenant_id": tenant_id,
@@ -116,7 +128,7 @@ class VolumeUpdateAction(base.BaseAction):
 
     @property
     def temp_user_name(self):
-        return self.TEMP_USER_NAME + self.randomString(10)
+        return self._temp_user_name
 
     def create_temp_user(self):
         project_id = self.src_volume_attr["tenant_id"]
@@ -126,10 +138,6 @@ class VolumeUpdateAction(base.BaseAction):
         role = self.keystone.roles.find(name=self.TEMP_USER_ROLE)
         user = self.keystone.users.find(name=self.temp_user_name)
         self.keystone.roles.grant(role.id, user=user.id, project=project_id)
-
-    def randomString(n):
-        return ''.join([random.choice(
-            string.ascii_letters + string.digits) for i in range(n)])
 
     def execute(self):
         return self.migrate(self.server_id, self.attachment_id)
@@ -146,4 +154,5 @@ class VolumeUpdateAction(base.BaseAction):
 
     def post_condition(self):
         user = self.keystone.users.find(name=self.temp_user_name)
-        self.keystone.users.delete(user)
+        if user:
+            self.keystone.users.delete(user)
