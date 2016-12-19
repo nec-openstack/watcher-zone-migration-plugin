@@ -20,6 +20,7 @@ from oslo_log import log
 import voluptuous
 
 from cinderclient import client as local_cinder
+from cinderclient import exceptions as ce
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from watcher.applier.actions import base
@@ -75,6 +76,7 @@ class VolumeUpdateAction(base.BaseAction):
             project_id=self.src_volume_attr["tenant_id"])
         sess = session.Session(auth=auth)
         cinder = local_cinder.Client(2, session=sess)
+        # create new volume
         new_volume = cinder.volumes.create(
             self.src_volume_attr["size"],
             name=self.src_volume_attr["name"],
@@ -106,6 +108,17 @@ class VolumeUpdateAction(base.BaseAction):
             "Volume update succeeded : "
             "Volume %s is now on host '%s'." % (
                 new_volume.id, host_name))
+        # delete old volume
+        cinder.volumes.delete(self.attachment_id)
+        while True:
+            try:
+                self.cinder.volumes.get(self.attachment_id)
+                LOG.debug('Waiting volume deletion of {0}'.format(
+                    self.attachment_id))
+                time.sleep(5)
+            except ce.NotFound:
+                break
+        LOG.debug("Volume %s was deleted successfully." % self.attachment_id)
 
     def get_volume_attr(self, volume_id):
         volume = self.cinder.volumes.get(volume_id)

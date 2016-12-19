@@ -64,7 +64,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                 elif key == self.VOLUME:
                     if resource_status == self.IN_USE:
                         # do novavolume update
-                        self._volume_update(resource_id, dst_hostname)
+                        self._volume_update(resource_id)
                     elif resource_status == self.AVAILABLE:
                         # detached volume with no snapshots
                         # do cinder migrate
