@@ -38,7 +38,7 @@ class VolumeUpdateAction(base.BaseAction):
 
     TEMP_USER_NAME = "tempuser"
     TEMP_USER_PASSWORD = "password"
-    TEMP_USER_ROLE = "Member"
+    TEMP_USER_ROLE = "admin"
 
     def __init__(self, config, osc=None):
         super(VolumeUpdateAction, self).__init__(config)
