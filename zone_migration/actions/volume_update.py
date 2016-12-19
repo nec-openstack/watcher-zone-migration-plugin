@@ -17,7 +17,6 @@ import time
 
 from oslo_config import cfg
 from oslo_log import log
-import six
 import voluptuous
 
 from cinderclient import client as local_cinder
