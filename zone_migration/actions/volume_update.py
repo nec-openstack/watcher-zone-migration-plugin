@@ -44,6 +44,7 @@ class VolumeUpdateAction(base.BaseAction):
     def __init__(self, config, osc=None):
         super(VolumeUpdateAction, self).__init__(config)
         self._temp_user_name = self.TEMP_USER_NAME + randomString(10)
+        self._temp_user_password = self.TEMP_USER_PASSWORD + randomString(10)
 
     def check_uuid(self, value):
         if (value is not None and
@@ -71,7 +72,7 @@ class VolumeUpdateAction(base.BaseAction):
         auth = loader.load_from_options(
             auth_url=CONF.keystone_authtoken.auth_uri,
             username=self.temp_user_name,
-            password=self.TEMP_USER_PASSWORD,
+            password=self.temp_user_password,
             project_id=self.src_volume_attr["tenant_id"])
         sess = session.Session(auth=auth)
         cinder = local_cinder.Client(2, session=sess)
@@ -130,10 +131,14 @@ class VolumeUpdateAction(base.BaseAction):
     def temp_user_name(self):
         return self._temp_user_name
 
+    @property
+    def temp_user_password(self):
+        return self._temp_user_password
+
     def create_temp_user(self):
         project_id = self.src_volume_attr["tenant_id"]
         self.keystone.users.create(self.temp_user_name,
-                                   password=self.TEMP_USER_PASSWORD,
+                                   password=self.temp_user_password,
                                    project=self.src_volume_attr["tenant_id"])
         role = self.keystone.roles.find(name=self.TEMP_USER_ROLE)
         user = self.keystone.users.find(name=self.temp_user_name)
