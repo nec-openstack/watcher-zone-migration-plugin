@@ -20,8 +20,11 @@ import voluptuous
 
 from watcher.applier.actions import base
 from watcher.common import utils
+from zone_migration import conf
 
 LOG = log.getLogger(__name__)
+
+CONF = conf.CONF
 
 
 class VolumeMigrationAction(base.BaseAction):
@@ -52,7 +55,9 @@ class VolumeMigrationAction(base.BaseAction):
     def dst_hostname(self):
         return self.input_parameters.get(self.DST_HOSTNAME)
 
-    def migrate(self, volume_id, dst_hostname, retry=120):
+    def migrate(self, volume_id, dst_hostname):
+        retry = CONF.zone_migration.retry
+        retry_interval = CONF.zone_migration.retry_interval
         volume = self.cinder.volumes.get(volume_id)
         if not volume:
             raise Exception("Volume not found: %s" % volume_id)
@@ -70,8 +75,9 @@ class VolumeMigrationAction(base.BaseAction):
                     and retry:
                 volume = self.cinder.volumes.get(volume_id)
                 LOG.debug('Waiting the migration of {0}'.format(volume))
-                time.sleep(5)
+                time.sleep(retry_interval)
                 retry -= 1
+                LOG.debug("retry count: %s" % retry)
             host_name = getattr(volume, 'os-vol-host-attr:host')
             if source_hostname == host_name:
                 raise Exception("Volume migration retry timeout or error : "

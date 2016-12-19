@@ -25,9 +25,11 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from watcher.applier.actions import base
 from watcher.common import utils
+from zone_migration import conf
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
+CONF = conf.CONF
 
 
 def randomString(n):
@@ -67,7 +69,9 @@ class VolumeUpdateAction(base.BaseAction):
     def attachment_id(self):
         return self.input_parameters.get(self.RESOURCE_ID)
 
-    def migrate(self, server_id, attachment_id, retry=120):
+    def migrate(self, server_id, attachment_id):
+        retry = CONF.zone_migration.retry
+        retry_interval = CONF.zone_migration.retry_interval
         loader = loading.get_plugin_loader('password')
         auth = loader.load_from_options(
             auth_url=CONF.keystone_authtoken.auth_uri,
@@ -84,7 +88,7 @@ class VolumeUpdateAction(base.BaseAction):
         while getattr(new_volume, 'status') != 'available':
             new_volume = self.cinder.volumes.get(new_volume.id)
             LOG.debug('Waiting volume creation of {0}'.format(new_volume))
-            time.sleep(5)
+            time.sleep(retry_interval)
         LOG.debug("Volume %s was created successfully." % new_volume)
         # do volume update
         LOG.debug(
@@ -95,8 +99,9 @@ class VolumeUpdateAction(base.BaseAction):
         while getattr(new_volume, 'status') != 'in-use' and retry:
             new_volume = self.cinder.volumes.get(new_volume.id)
             LOG.debug('Waiting volume update to {0}'.format(new_volume))
-            time.sleep(5)
+            time.sleep(retry_interval)
             retry -= 1
+            LOG.debug("retry count: %s" % retry)
         if getattr(new_volume, 'status') != "in-use":
             raise Exception("Volume update retry timeout or error : "
                             "volume %s is now on host '%s'." % (
@@ -115,7 +120,7 @@ class VolumeUpdateAction(base.BaseAction):
                 self.cinder.volumes.get(self.attachment_id)
                 LOG.debug('Waiting volume deletion of {0}'.format(
                     self.attachment_id))
-                time.sleep(5)
+                time.sleep(retry_interval)
             except ce.NotFound:
                 break
         LOG.debug("Volume %s was deleted successfully." % self.attachment_id)

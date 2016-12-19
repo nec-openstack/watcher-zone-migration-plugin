@@ -20,8 +20,11 @@ import voluptuous
 
 from watcher.applier.actions import base
 from watcher.common import utils
+from zone_migration import conf
 
 LOG = log.getLogger(__name__)
+
+CONF = conf.CONF
 
 
 class LiveMigrationAction(base.BaseAction):
@@ -50,7 +53,9 @@ class LiveMigrationAction(base.BaseAction):
     def dst_hostname(self):
         return self.input_parameters.get(self.DST_HOSTNAME)
 
-    def migrate(self, instance_id, dst_hostname, retry=120):
+    def migrate(self, instance_id, dst_hostname):
+        retry = CONF.zone_migration.retry
+        retry_interval = CONF.zone_migration.retry_interval
         instance = self.nova.servers.get(instance_id)
         if not instance:
             raise Exception("Instance not found: %s" % instance_id)
@@ -69,8 +74,9 @@ class LiveMigrationAction(base.BaseAction):
                 instance = self.nova.servers.get(instance.id)
                 LOG.debug(
                     'Waiting the migration of {0}'.format(instance))
-                time.sleep(5)
+                time.sleep(retry_interval)
                 retry -= 1
+                LOG.debug("retry count: %s" % retry)
             host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
             if source_hostname == host_name:
                 raise Exception("Live migration retry timeout: "
