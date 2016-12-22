@@ -1,4 +1,6 @@
 import os
+import time
+import sys
 import yaml
 
 from keystoneauth1 import loading
@@ -162,8 +164,21 @@ def delete_users(keystone, users={}):
     for _, user in users.items():
         delete_user(keystone, user)
 
-def create_server(vm, users):
+def create_server(name, vm, users, timeout=300):
     nova = nova_client(users[vm['user']])
     glance = glance_client(users[vm['user']])
-    print(get_flavor(nova, 'm1.small'))
-    print(get_image(glance, 'cirros-0.3.4-x86_64-uec'))
+    flavor = get_flavor(nova, vm['flavor'])
+    image = get_image(glance, vm['image'])
+    instance = nova.servers.create(
+        name=name,
+        image=image,
+        flavor=flavor,
+    )
+    _timeout = 0
+    while instance.status != 'ACTIVE':
+        sys.stderr.write('Waiting server ACTIVE: %s\n' % name)
+        time.sleep(5)
+        _timeout += 5
+        if _timeout > timeout:
+            raise RuntimeError("Timeout!")
+        instance = nova.servers.get(instance.id)
