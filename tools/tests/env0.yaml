@@ -8,6 +8,20 @@ env:
     project_name: admin
     project_domain_id: default
 
+default:
+  vm: &vm_default
+    src_hostname: compute01
+    dst_hostname: compute02
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1
+  volume: &volume_default
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    type: lvmdriver-1
+    size: 10
+    user: test1
+
 user:
   test1:
     username: test1
@@ -18,32 +32,17 @@ user:
     roles: [admin, Member]
 vm:
   instance1:
+    <<: *vm_default
     status: active
-    src_hostname: compute01
-    dst_hostname: compute02
-    flavor: m1.small
-    image: cirros-0.3.4-x86_64-uec
-    user: test1
   instance2:
+    <<: *vm_default
     status: shutoff
-    src_hostname: compute01
-    dst_hostname: compute02
-    flavor: m1.small
-    image: cirros-0.3.4-x86_64-uec
-    user: test1
+
 volume:
   volume1:
+    <<: *volume_default
     status: available
-    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    type: lvmdriver-1
-    size: 10
-    user: test1
   volume2:
+    <<: *volume_default
     status: in-use
     attached_to: instance1
-    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    type: lvmdriver-1
-    size: 10
-    user: test1
