@@ -27,30 +27,20 @@ def env(*args, **kwargs):
             return value
     return kwargs.get('default', '')
 
-def keystone_admin_client():
+def admin_session(**kwargs):
     loader = loading.get_plugin_loader('v3password')
-    auth = loader.load_from_options(
-        auth_url = env('OS_AUTH_URL', default=None),
-        password = env('OS_PASSWORD', default=None),
-        username = env('OS_USERNAME', default=None),
-        user_id = env('OS_USER_ID', default=None),
-        user_domain_id = env('OS_USER_DOMAIN_ID', default=None),
-        user_domain_name = env('OS_USER_DOMAIN_NAME', default=None),
-        domain_id = env('OS_DOMAIN_ID', default=None),
-        domain_name = env('OS_DOMAIN_NAME', default=None),
-        project_id = env('OS_PROJECT_ID', default=None),
-        project_name = env('OS_PROJECT_NAME', default=None),
-        project_domain_id = env('OS_PROJECT_DOMAIN_ID', default=None),
-        project_domain_name = env('OS_PROJECT_DOMAIN_NAME', default=None))
-    sess = session.Session(auth=auth)
-    keystone = keystoneclient.Client(session=sess)
+    auth = loader.load_from_options(**kwargs)
+    return session.Session(auth=auth)
+
+def keystone_client(session):
+    keystone = keystoneclient.Client(session=session)
     return keystone
 
-def nova_client(user):
-    return novaclient.Client('2.1', session=user['session'])
+def nova_client(session):
+    return novaclient.Client('2.1', session=session)
 
-def glance_client(user):
-    return glanceclient.Client('1', session=user['session'])
+def glance_client(session):
+    return glanceclient.Client('1', session=session)
 
 def get_role(keystone, name_or_id):
     try:
@@ -141,8 +131,9 @@ def create_user(keystone, user):
         domain=domain,
         project=project,
     )
-    role = get_role(keystone, user['role'])
-    keystone.roles.grant(role.id, user=_user.id, project=project.id)
+    for role in user['roles']:
+        role = get_role(keystone, role)
+        keystone.roles.grant(role.id, user=_user.id, project=project.id)
     return _user
 
 def delete_user(keystone, user):
@@ -164,21 +155,34 @@ def delete_users(keystone, users={}):
     for _, user in users.items():
         delete_user(keystone, user)
 
-def create_server(name, vm, users, timeout=300):
-    nova = nova_client(users[vm['user']])
-    glance = glance_client(users[vm['user']])
-    flavor = get_flavor(nova, vm['flavor'])
-    image = get_image(glance, vm['image'])
-    instance = nova.servers.create(
-        name=name,
-        image=image,
-        flavor=flavor,
-    )
+def wait_instance(nova, instance, timeout=300):
     _timeout = 0
     while instance.status != 'ACTIVE':
-        sys.stderr.write('Waiting server ACTIVE: %s\n' % name)
+        sys.stderr.write('Waiting server ACTIVE: %s\n' % instance.name)
         time.sleep(5)
         _timeout += 5
         if _timeout > timeout:
             raise RuntimeError("Timeout!")
         instance = nova.servers.get(instance.id)
+
+def create_server(env, name, vm, users, timeout=300):
+    nova_admin = nova_client(env['admin'])
+    nova = nova_client(users[vm['user']]['session'])
+    glance = glance_client(users[vm['user']]['session'])
+    flavor = get_flavor(nova, vm['flavor'])
+    image = get_image(glance, vm['image'])
+
+    az = None
+    if vm['src_hostname']:
+        az = '%s:%s' % (env['availability_zone'], vm['src_hostname'])
+
+    instance = nova.servers.create(
+        name=name,
+        image=image,
+        flavor=flavor,
+        availability_zone=az,
+    )
+
+    if vm['status'] == 'shutoff':
+        wait_instance(nova, instance, timeout)
+        instance.stop()

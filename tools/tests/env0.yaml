@@ -1,13 +1,31 @@
+env:
+  availability_zone: nova
+  admin:
+    auth_url: 'http://192.168.11.197:5000/v3/'
+    password: openstack
+    username: admin
+    user_domain_id: default
+    project_name: admin
+    project_domain_id: default
+
 user:
   test1:
     username: test1
     password: password
     project: demo
     domain: default
-    role: Member
+    # admin role is required if src_hostname is specified.
+    roles: [admin, Member]
 vm:
   instance1:
     status: active
+    src_hostname: compute01
+    dst_hostname: compute02
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1
+  instance2:
+    status: shutoff
     src_hostname: compute01
     dst_hostname: compute02
     flavor: m1.small
