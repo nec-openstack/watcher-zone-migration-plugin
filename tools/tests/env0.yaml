@@ -1,0 +1,6 @@
+user:
+  test1:
+    username: test1
+    password: password
+    project: demo
+    domain: default
