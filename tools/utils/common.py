@@ -4,7 +4,7 @@ import yaml
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneauth1.exceptions.http import NotFound
-from keystoneclient.v3 import client as kc_v3
+from keystoneclient.v3 import client as keystoneclient
 
 def load_target_env(path):
     with open(path, 'r') as io:
@@ -37,8 +37,23 @@ def keystone_admin_client():
         project_domain_id = env('OS_PROJECT_DOMAIN_ID', default=None),
         project_domain_name = env('OS_PROJECT_DOMAIN_NAME', default=None))
     sess = session.Session(auth=auth)
-    keystone = kc_v3.Client(session=sess)
+    keystone = keystoneclient.Client(session=sess)
     return keystone
+
+def nova_client(user):
+    return novaclient.Client('2.1', session=user['session'])
+
+def get_role(keystone, name_or_id):
+    try:
+        role = keystone.roles.get(name_or_id)
+        return role
+    except NotFound:
+        roles = keystone.roles.list(name=name_or_id)
+        if len(roles) == 0:
+            raise ValueError('Role not Found: %s' % name_or_id)
+        if len(roles) > 1:
+            raise ValueError('Role name seems ambiguous: %s' % name_or_id)
+        return roles[0]
 
 def get_user(keystone, name_or_id):
     try:
@@ -88,12 +103,15 @@ def create_session(user):
 def create_user(keystone, user):
     project = get_project(keystone, user['project'])
     domain = get_domain(keystone, user['domain'])
-    return keystone.users.create(
+    _user = keystone.users.create(
         user['username'],
         password=user['password'],
         domain=domain,
         project=project,
     )
+    role = get_role(keystone, user['role'])
+    keystone.roles.grant(role.id, user=_user.id, project=project.id)
+    return _user
 
 def delete_user(keystone, user):
     try:
