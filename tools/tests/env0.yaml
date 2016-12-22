@@ -4,3 +4,11 @@ user:
     password: password
     project: demo
     domain: default
+vm:
+  instance1:
+    status: active
+    src_hostname: compute01
+    dst_hostname: compute02
+    flavor: m1.small
+    image: cirros
+    user: test1
