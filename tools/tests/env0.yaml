@@ -31,3 +31,19 @@ vm:
     flavor: m1.small
     image: cirros-0.3.4-x86_64-uec
     user: test1
+volume:
+  volume1:
+    status: available
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    type: lvmdriver-1
+    size: 10
+    user: test1
+  volume2:
+    status: in-use
+    attached_to: instance1
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    type: lvmdriver-1
+    size: 10
+    user: test1
