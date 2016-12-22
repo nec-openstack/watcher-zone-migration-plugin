@@ -186,3 +186,7 @@ def create_server(env, name, vm, users, timeout=300):
     if vm['status'] == 'shutoff':
         wait_instance(nova, instance, timeout)
         instance.stop()
+
+def create_servers(env, vms, users):
+    for name, vm in vms.items():
+        create_server(env, name, vm, users, env.get('timeout', 300))

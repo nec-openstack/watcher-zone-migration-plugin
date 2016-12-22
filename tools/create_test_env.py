@@ -12,5 +12,4 @@ keystone = common.keystone_client(admin)
 common.delete_users(keystone, target_env['user'])
 users = common.create_users(keystone, target_env['user'])
 
-common.create_server(target_env['env'], 'instance1', target_env['vm']['instance1'], users)
-common.create_server(target_env['env'], 'instance2', target_env['vm']['instance2'], users)
+common.create_servers(target_env['env'], target_env['vm'], users)
