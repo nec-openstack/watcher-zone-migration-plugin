@@ -11,5 +11,5 @@ vm:
     src_hostname: compute01
     dst_hostname: compute02
     flavor: m1.small
-    image: cirros
+    image: cirros-0.3.4-x86_64-uec
     user: test1

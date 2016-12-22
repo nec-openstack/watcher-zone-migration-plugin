@@ -3,8 +3,12 @@ import yaml
 
 from keystoneauth1 import loading
 from keystoneauth1 import session
-from keystoneauth1.exceptions.http import NotFound
+from keystoneauth1.exceptions import http as ks_exceptions
 from keystoneclient.v3 import client as keystoneclient
+from glanceclient import client as glanceclient
+from glanceclient import exc as glance_exections
+from novaclient import client as novaclient
+from novaclient import exceptions as nova_exections
 
 def load_target_env(path):
     with open(path, 'r') as io:
@@ -43,11 +47,14 @@ def keystone_admin_client():
 def nova_client(user):
     return novaclient.Client('2.1', session=user['session'])
 
+def glance_client(user):
+    return glanceclient.Client('1', session=user['session'])
+
 def get_role(keystone, name_or_id):
     try:
         role = keystone.roles.get(name_or_id)
         return role
-    except NotFound:
+    except ks_exceptions.NotFound:
         roles = keystone.roles.list(name=name_or_id)
         if len(roles) == 0:
             raise ValueError('Role not Found: %s' % name_or_id)
@@ -59,7 +66,7 @@ def get_user(keystone, name_or_id):
     try:
         user = keystone.users.get(name_or_id)
         return user
-    except NotFound:
+    except ks_exceptions.NotFound:
         users = keystone.users.list(name=name_or_id)
         if len(users) == 0:
             raise ValueError('User not Found: %s' % name_or_id)
@@ -71,7 +78,7 @@ def get_project(keystone, name_or_id):
     try:
         project = keystone.projects.get(name_or_id)
         return project
-    except NotFound:
+    except ks_exceptions.NotFound:
         projects = keystone.projects.list(name=name_or_id)
         if len(projects) == 0:
             raise ValueError('Project not Found: %s' % name_or_id)
@@ -83,13 +90,36 @@ def get_domain(keystone, name_or_id):
     try:
         domain = keystone.domains.get(name_or_id)
         return domain
-    except NotFound:
+    except ks_exceptions.NotFound:
         domains = keystone.domains.list(name=name_or_id)
         if len(domains) == 0:
             raise ValueError('Domain not Found: %s' % name_or_id)
         if len(domains) > 1:
             raise ValueError('Domain name seems ambiguous: %s' % name_or_id)
         return domains[0]
+
+def get_flavor(nova, name_or_id):
+    try:
+        flavor = nova.flavors.get(name_or_id)
+        return flavor
+    except nova_exections.NotFound:
+        return nova.flavors.find(name=name_or_id)
+
+def get_image(glance, name_or_id):
+    try:
+        image = glance.images.get(name_or_id)
+        return image
+    except glance_exections.HTTPNotFound:
+        images = glance.images.list()
+        _images = []
+        for image in images:
+            if image.name == name_or_id:
+                _images.append(image)
+        if len(_images) == 0:
+            raise ValueError('Image not Found: %s' % name_or_id)
+        if len(_images) > 1:
+            raise ValueError('Image name seems ambiguous: %s' % name_or_id)
+        return _images[0]
 
 def create_session(user):
     loader = loading.get_plugin_loader('v3password')
@@ -131,3 +161,9 @@ def create_users(keystone, users={}):
 def delete_users(keystone, users={}):
     for _, user in users.items():
         delete_user(keystone, user)
+
+def create_server(vm, users):
+    nova = nova_client(users[vm['user']])
+    glance = glance_client(users[vm['user']])
+    print(get_flavor(nova, 'm1.small'))
+    print(get_image(glance, 'cirros-0.3.4-x86_64-uec'))
