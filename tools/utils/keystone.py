@@ -16,8 +16,6 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client as keystoneclient
 
-from utils import common
-
 
 def admin_session(**kwargs):
     loader = loading.get_plugin_loader('v3password')

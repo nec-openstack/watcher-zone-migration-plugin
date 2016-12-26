@@ -17,9 +17,8 @@ default:
     user: test1
   volume: &volume_default
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     type: lvmdriver-1
-    size: 10
+    size: 1
     user: test1
 
 user:
@@ -42,6 +41,7 @@ volume:
   volume1:
     <<: *volume_default
     status: available
+    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
   volume2:
     <<: *volume_default
     status: in-use

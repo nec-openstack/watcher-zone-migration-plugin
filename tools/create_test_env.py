@@ -12,6 +12,7 @@
 #    under the License.
 import sys
 
+from utils import cinder
 from utils import common
 from utils import keystone
 from utils import nova
@@ -26,4 +27,5 @@ keystone_client = keystone.keystone_client(admin)
 keystone.delete_users(keystone_client, target_env['user'])
 users = keystone.create_users(keystone_client, target_env['user'])
 
-nova.create_servers(target_env['env'], target_env['vm'], users)
+nova.create_servers(target_env, target_env['vm'], users)
+cinder.create_volumes(target_env, target_env['volume'], users)
