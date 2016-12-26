@@ -22,6 +22,18 @@ LOG = log.getLogger(__name__)
 
 
 class MyMessageAction(base.BaseAction):
+    """logs a message
+
+    The action schema is::
+
+        schema = Schema({
+         'message': str,
+        })
+
+    The `message` is the actual message that will be logged.
+    """
+
+    MESSAGE = 'message'
 
     @property
     def schema(self):
