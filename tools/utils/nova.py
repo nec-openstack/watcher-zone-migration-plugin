@@ -33,6 +33,14 @@ def get_flavor(nova, name_or_id):
         return nova.flavors.find(name=name_or_id)
 
 
+def get_server(nova, name_or_id):
+    try:
+        server = nova.servers.get(name_or_id)
+        return server
+    except nova_exections.NotFound:
+        return nova.servers.find(name=name_or_id)
+
+
 def wait_instance(nova, instance, timeout=300, transition_states=('build')):
     _timeout = 0
     status = instance.status.lower()
