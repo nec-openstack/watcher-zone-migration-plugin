@@ -15,6 +15,9 @@ import json
 import subprocess
 import sys
 
+from utils import common
+
+
 GOAL = "192afd7b-84b2-48a0-b755-b2b1b5a3227b"
 STRATEGY = "85d39b54-6bd4-4cd4-8e92-920498388742"
 
@@ -28,9 +31,11 @@ def main(args):
                                  "audit",
                                  "create",
                                  "-g",
-                                 GOAL,
+                                 common.env('OS_WATCHER_GOAL_ID',
+                                            default=GOAL),
                                  "-s",
-                                 STRATEGY,
+                                 common.env('OS_WATCHER_STRATEGY_ID',
+                                            default=STRATEGY),
                                  "-p",
                                  "params=" + json.dumps(obj)])
 
