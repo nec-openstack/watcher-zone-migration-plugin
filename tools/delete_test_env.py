@@ -13,12 +13,14 @@
 import sys
 
 from utils import common
+from utils import keystone
+
 
 env_file = sys.argv[1]
 target_env = common.load_target_env(env_file)
 
-admin = common.admin_session(**target_env['env']['admin'])
+admin = keystone.admin_session(**target_env['env']['admin'])
 target_env['env']['admin'] = admin
-keystone = common.keystone_client(admin)
+keystone_client = keystone.keystone_client(admin)
 
-common.delete_users(keystone, target_env['user'])
+keystone.delete_users(keystone_client, target_env['user'])
