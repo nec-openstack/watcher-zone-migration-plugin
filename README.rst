@@ -2,7 +2,10 @@
 zone_migration
 ===============================
 
-zone_migration
+This is the `third-party plugin for Watcher`_ for zone migration.
+
+.. _third-party plugin for Watcher: http://docs.openstack.org/developer/watcher/dev/plugin/base-setup.html
+
 
 * Free software: Apache license
 
