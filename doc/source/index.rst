@@ -12,9 +12,7 @@ Contents:
    :maxdepth: 2
 
    readme
-   installation
    usage
-   contributing
 
 Indices and tables
 ==================
