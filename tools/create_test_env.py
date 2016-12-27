@@ -53,7 +53,7 @@ for _, vm in vms.items():
         }
 
 for _, volume in volumes.items():
-    if 'ignore' != vm.get('output', ''):
+    if 'ignore' != volume.get('output', ''):
         params['volume'][volume['id']] = {
             "status": volume['status'],
             "src_hostname": volume.get('src_hostname', ''),
