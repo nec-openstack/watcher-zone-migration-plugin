@@ -83,7 +83,8 @@ def create_volume(env, name, volume, users, timeout=300):
             volume['size'],
             name=name,
             volume_type=volume.get('type', None),
-            availability_zone=env['env'].get('availability_zone'),
+            availability_zone=env['env'].get('availability_zone', {})
+                                        .get('cinder'),
         )
 
     # Set instancd id to env file

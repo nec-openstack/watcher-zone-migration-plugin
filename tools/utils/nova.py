@@ -85,7 +85,7 @@ def create_server(env, name, vm, users, timeout=300):
     az = None
     if vm.get('src_hostname', None):
         az = '{0}:{1}'.format(
-            env['env'].get('availability_zone'),
+            env['env'].get('availability_zone', {}).get('nova'),
             vm['src_hostname']
         )
 
