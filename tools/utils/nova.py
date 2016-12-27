@@ -75,8 +75,8 @@ def create_server(env, name, vm, users, timeout=300):
     image = glance.get_image(glance_client, vm['image'])
 
     az = None
-    if vm['src_hostname']:
-        az = '%s:%s' % (env['env']['availability_zone'], vm['src_hostname'])
+    if vm.get('src_hostname', None):
+        az = '%s:%s' % (env['env'].get('availability_zone'), vm['src_hostname'])
 
     instance = nova.servers.create(
         name=name,
@@ -87,7 +87,7 @@ def create_server(env, name, vm, users, timeout=300):
     # Set instancd id to env file
     vm['id'] = instance.id
 
-    if vm['status'] == 'shutoff':
+    if vm.get('status', None) == 'shutoff':
         wait_instance(nova, instance, timeout)
         instance.stop()
 

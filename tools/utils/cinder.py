@@ -60,7 +60,7 @@ def create_volume(env, name, volume, users, timeout=300):
         volume['size'],
         name=name,
         volume_type=volume.get('type', None),
-        availability_zone=env['env']['availability_zone'],
+        availability_zone=env['env'].get('availability_zone'),
     )
     # Set instancd id to env file
     volume['id'] = instance.id
