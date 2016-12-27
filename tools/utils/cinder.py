@@ -16,6 +16,8 @@ import sys
 import time
 
 from cinderclient import client as cinderclient
+from cinderclient import exceptions as cinder_exections
+from cinderclient import utils as cinder_utils
 
 from utils import nova
 
@@ -24,21 +26,32 @@ def cinder_client(session):
     return cinderclient.Client(2, session=session)
 
 
-def wait_instance(cinder, instance, timeout=300,
-                  transition_states=('creating')):
+def get_volume(cinder, name_or_id):
+    return cinder_utils.find_volume(cinder, name_or_id)
+
+
+def wait_instance(
+    cinder,
+    instance,
+    timeout=300,
+    target_state='available',
+    transition_states=('creating'),
+    ):
     _timeout = 0
     status = instance.status
-    while status != 'available':
+    while status != target_state:
         if status not in transition_states:
             raise RuntimeError(
-                'Fail to create volume: %s (%s)' % (
+                'Fail to volume "%s": %s (%s)' % (
+                    target_state,
                     instance.name,
                     instance.status
                 )
             )
 
         sys.stderr.write(
-            'Waiting volume available: %s (%s)\n' % (
+            'Waiting volume %s: %s (%s)\n' % (
+                target_state,
                 instance.name,
                 instance.status)
         )
@@ -94,3 +107,27 @@ def create_volume(env, name, volume, users, timeout=300):
 def create_volumes(env, volumes, users):
     for name, volume in volumes.items():
         create_volume(env, name, volume, users, env.get('timeout', 300))
+
+
+def delete_volume(env, name, volume, users, timeout=300):
+    print("Start to delete volume: {}".format(name), file=sys.stderr)
+
+    session = users[volume['user']]['session']
+    cinder = cinder_client(session)
+    try:
+        volume = get_volume(cinder, name)
+        volume.delete()
+        wait_instance(
+            cinder,
+            volume,
+            timeout=timeout,
+            target_state='deleted',
+            transition_states=('deleting', 'in-use', 'available'),
+        )
+    except cinder_exections.NotFound:
+        print("Succeeded to delete volume:{}".format(name), file=sys.stderr)
+
+
+def delete_volumes(env, volumes, users):
+    for name, volume in volumes.items():
+        delete_volume(env, name, volume, users, env.get('timeout', 300))
