@@ -10,6 +10,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
+import json
 import sys
 
 from utils import cinder
@@ -33,5 +35,27 @@ keystone_client = keystone.keystone_client(admin)
 
 users = keystone.find_or_create_users(keystone_client, users)
 
-nova.create_servers(target_env, target_env.get('vm', {}), users)
-cinder.create_volumes(target_env, target_env.get('volume', {}), users)
+vms = target_env.get('vm', {})
+volumes = target_env.get('volume', {})
+nova.create_servers(target_env, vms, users)
+cinder.create_volumes(target_env, volumes, users)
+
+params = {
+    'vm': {},
+    'volume': {}
+}
+for _, vm in vms.items():
+    params['vm'][vm['id']] = {
+        "status": vm['status'],
+        "src_hostname": vm.get('src_hostname', ''),
+        "dst_hostname": vm.get('dst_hostname', ''),
+    }
+
+for _, volume in volumes.items():
+    params['volume'][volume['id']] = {
+        "status": volume['status'],
+        "src_hostname": volume.get('src_hostname', ''),
+        "dst_hostname": volume.get('dst_hostname', ''),
+    }
+
+print(json.dumps(params, sort_keys=True, indent=2))
