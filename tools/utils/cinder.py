@@ -101,13 +101,14 @@ def create_volume(env, name, volume, users, timeout=300):
                 False,
                 False,
             )
+            instance = cinder.volumes.get(instance.id)
             wait_instance(
                 cinder,
                 instance,
                 timeout,
                 target_states=('success'),
                 transition_states=(
-                    None, 'starting', 'migrating', 'completing'),
+                    'starting', 'migrating', 'completing'),
                 status_attr='migration_status',
             )
 
