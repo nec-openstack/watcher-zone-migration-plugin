@@ -45,17 +45,19 @@ params = {
     'volume': {}
 }
 for _, vm in vms.items():
-    params['vm'][vm['id']] = {
-        "status": vm['status'],
-        "src_hostname": vm.get('src_hostname', ''),
-        "dst_hostname": vm.get('dst_hostname', ''),
-    }
+    if 'ignore' != vm.get('output', ''):
+        params['vm'][vm['id']] = {
+            "status": vm['status'],
+            "src_hostname": vm.get('src_hostname', ''),
+            "dst_hostname": vm.get('dst_hostname', ''),
+        }
 
 for _, volume in volumes.items():
-    params['volume'][volume['id']] = {
-        "status": volume['status'],
-        "src_hostname": volume.get('src_hostname', ''),
-        "dst_hostname": volume.get('dst_hostname', ''),
-    }
+    if 'ignore' != vm.get('output', ''):
+        params['volume'][volume['id']] = {
+            "status": volume['status'],
+            "src_hostname": volume.get('src_hostname', ''),
+            "dst_hostname": volume.get('dst_hostname', ''),
+        }
 
 print(json.dumps(params, sort_keys=True, indent=2))

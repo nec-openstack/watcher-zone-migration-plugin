@@ -42,6 +42,10 @@ vm:
   instance2:
     <<: *vm_default
     status: shutoff
+  instance3:
+    <<: *vm_default
+    status: active
+    output: ignore
 
 volume:
   volume1:
