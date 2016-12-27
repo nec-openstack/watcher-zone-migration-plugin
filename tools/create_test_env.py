@@ -24,8 +24,7 @@ admin = keystone.admin_session(**target_env['env']['admin'])
 target_env['env']['admin'] = admin
 keystone_client = keystone.keystone_client(admin)
 
-keystone.delete_users(keystone_client, target_env['user'])
-users = keystone.create_users(keystone_client, target_env['user'])
+users = keystone.find_or_create_users(keystone_client, target_env['user'])
 
 nova.create_servers(target_env, target_env['vm'], users)
 cinder.create_volumes(target_env, target_env['volume'], users)

@@ -113,11 +113,15 @@ def delete_user(keystone, user):
         pass
 
 
-def create_users(keystone, users={}):
+def find_or_create_users(keystone, users={}):
     _users = {}
     for key, user in users.items():
         _users[key] = user
-        _users[key]['user'] = create_user(keystone, user)
+        try:
+            _users[key]['user'] = get_user(keystone, user['username'])
+        except ValueError:
+            _users[key]['user'] = create_user(keystone, user)
+
         _users[key]['session'] = create_session(
             keystone.session.auth.auth_url,
             user,
