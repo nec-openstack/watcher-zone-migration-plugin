@@ -45,16 +45,16 @@ def wait_instance(
     nova,
     instance,
     timeout=300,
-    target_state='active',
+    target_states=('active', 'shutoff'),
     transition_states=('build'),
     ):
     _timeout = 0
     status = instance.status.lower()
-    while status != target_state:
+    while status not in target_states:
         if status not in transition_states:
             raise RuntimeError(
                 'Fail to server "%s": %s (%s)' % (
-                    target_state,
+                    target_states,
                     instance.name,
                     instance.status
                 )
@@ -62,7 +62,7 @@ def wait_instance(
 
         sys.stderr.write(
             'Waiting server %s: %s (%s)\n' % (
-                target_state,
+                target_states,
                 instance.name,
                 instance.status)
         )
@@ -89,18 +89,27 @@ def create_server(env, name, vm, users, timeout=300):
             vm['src_hostname']
         )
 
-    instance = nova.servers.create(
-        name=name,
-        image=image,
-        flavor=flavor,
-        availability_zone=az,
-    )
+    try:
+        instance = get_server(nova, name)
+        print(
+            "[Warning]: Already exists server: {}".format(name),
+            file=sys.stderr,
+        )
+    except nova_exections.NotFound:
+        instance = nova.servers.create(
+            name=name,
+            image=image,
+            flavor=flavor,
+            availability_zone=az,
+        )
+
     # Set instancd id to env file
     vm['id'] = instance.id
 
     if vm.get('status', None) == 'shutoff':
-        wait_instance(nova, instance, timeout)
-        instance.stop()
+        if instance.status.lower() != 'shutoff':
+            wait_instance(nova, instance, timeout)
+            instance.stop()
 
 
 def create_servers(env, vms, users):
@@ -119,7 +128,7 @@ def delete_server(env, name, vm, users, timeout=300):
             nova,
             instance,
             timeout=timeout,
-            target_state='deleted',
+            target_states=('deleted'),
             transition_states=('deleting', 'shutoff', 'active'),
         )
     except nova_exections.NotFound:

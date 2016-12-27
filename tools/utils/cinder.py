@@ -17,7 +17,6 @@ import time
 
 from cinderclient import client as cinderclient
 from cinderclient import exceptions as cinder_exections
-from cinderclient import utils as cinder_utils
 
 from utils import nova
 
@@ -27,23 +26,27 @@ def cinder_client(session):
 
 
 def get_volume(cinder, name_or_id):
-    return cinder_utils.find_volume(cinder, name_or_id)
+    try:
+        volume = cinder.volumes.get(name_or_id)
+        return volume
+    except cinder_exections.NotFound:
+        return cinder.volumes.find(name=name_or_id)
 
 
 def wait_instance(
     cinder,
     instance,
     timeout=300,
-    target_state='available',
+    target_states=('in-use', 'available'),
     transition_states=('creating'),
     ):
     _timeout = 0
     status = instance.status
-    while status != target_state:
+    while status not in target_states:
         if status not in transition_states:
             raise RuntimeError(
                 'Fail to volume "%s": %s (%s)' % (
-                    target_state,
+                    target_states,
                     instance.name,
                     instance.status
                 )
@@ -51,7 +54,7 @@ def wait_instance(
 
         sys.stderr.write(
             'Waiting volume %s: %s (%s)\n' % (
-                target_state,
+                target_states,
                 instance.name,
                 instance.status)
         )
@@ -69,12 +72,20 @@ def create_volume(env, name, volume, users, timeout=300):
     session = users[volume['user']]['session']
     cinder = cinder_client(session)
 
-    instance = cinder.volumes.create(
-        volume['size'],
-        name=name,
-        volume_type=volume.get('type', None),
-        availability_zone=env['env'].get('availability_zone'),
-    )
+    try:
+        instance = get_volume(cinder, name)
+        print(
+            "[Warning]: Already exists volume: {}".format(name),
+            file=sys.stderr,
+        )
+    except cinder_exections.NotFound:
+        instance = cinder.volumes.create(
+            volume['size'],
+            name=name,
+            volume_type=volume.get('type', None),
+            availability_zone=env['env'].get('availability_zone'),
+        )
+
     # Set instancd id to env file
     volume['id'] = instance.id
 
@@ -96,6 +107,8 @@ def create_volume(env, name, volume, users, timeout=300):
             wait_instance(cinder, instance, timeout)
             nova_client = nova.nova_client(session)
             server_id = env['vm'][attached_to]['id']
+            server = nova.get_server(nova_client, server_id)
+            nova.wait_instance(nova_client, server, timeout)
             nova_client.volumes.create_server_volume(
                 server_id,
                 instance.id,
@@ -121,7 +134,7 @@ def delete_volume(env, name, volume, users, timeout=300):
             cinder,
             volume,
             timeout=timeout,
-            target_state='deleted',
+            target_states=('deleted'),
             transition_states=('deleting', 'in-use', 'available'),
         )
     except cinder_exections.NotFound:
