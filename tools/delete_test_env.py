@@ -20,11 +20,18 @@ from utils import nova
 env_file = sys.argv[1]
 target_env = common.load_target_env(env_file)
 
-admin = keystone.admin_session(**target_env['env']['admin'])
+admin = target_env['env'].get('admin', None)
+if admin is None:
+    raise ValueError("Admin information is needed in `env` section")
+users = target_env.get('user', None)
+if users is None:
+    raise ValueError("`user` seciton is needed")
+
+admin = keystone.admin_session(**admin)
 target_env['env']['admin'] = admin
 keystone_client = keystone.keystone_client(admin)
 
-users = keystone.find_or_create_users(keystone_client, target_env['user'])
+users = keystone.find_or_create_users(keystone_client, users)
 
-nova.delete_servers(target_env, target_env['vm'], users)
+nova.delete_servers(target_env, target_env.get('vm', {}), users)
 keystone.delete_users(keystone_client, target_env['user'])
