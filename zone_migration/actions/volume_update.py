@@ -84,6 +84,7 @@ class VolumeUpdateAction(base.BaseAction):
         new_volume = cinder.volumes.create(
             self.src_volume_attr["size"],
             name=self.src_volume_attr["name"],
+            volume_type=self.src_volume_attr["volume_type"],
             availability_zone=self.src_volume_attr["availability_zone"])
         while getattr(new_volume, 'status') != 'available':
             new_volume = self.cinder.volumes.get(new_volume.id)
@@ -135,13 +136,15 @@ class VolumeUpdateAction(base.BaseAction):
         availability_zone = getattr(volume, 'availability_zone')
         attachments = getattr(volume, 'attachments')
         host = getattr(volume, 'os-vol-host-attr:host')
+        volume_type = getattr(volume, 'volume_type')
         return {
             "attachments": attachments,
             "size": size,
             "name": name,
             "tenant_id": tenant_id,
             "availability_zone": availability_zone,
-            "host": host
+            "host": host,
+            "volume_type": volume_type
         }
 
     @property
