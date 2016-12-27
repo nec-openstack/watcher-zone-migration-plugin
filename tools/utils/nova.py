@@ -41,20 +41,28 @@ def get_server(nova, name_or_id):
         return nova.servers.find(name=name_or_id)
 
 
-def wait_instance(nova, instance, timeout=300, transition_states=('build')):
+def wait_instance(
+    nova,
+    instance,
+    timeout=300,
+    target_state='active',
+    transition_states=('build'),
+    ):
     _timeout = 0
     status = instance.status.lower()
-    while status != 'active':
+    while status != target_state:
         if status not in transition_states:
             raise RuntimeError(
-                'Fail to create server: %s (%s)' % (
+                'Fail to server "%s": %s (%s)' % (
+                    target_state,
                     instance.name,
                     instance.status
                 )
             )
 
         sys.stderr.write(
-            'Waiting server ACTIVE: %s (%s)\n' % (
+            'Waiting server %s: %s (%s)\n' % (
+                target_state,
                 instance.name,
                 instance.status)
         )
@@ -95,3 +103,26 @@ def create_server(env, name, vm, users, timeout=300):
 def create_servers(env, vms, users):
     for name, vm in vms.items():
         create_server(env, name, vm, users, env.get('timeout', 300))
+
+
+def delete_server(env, name, vm, users, timeout=300):
+    print("Start to delete server: {}".format(name), file=sys.stderr)
+
+    nova = nova_client(users[vm['user']]['session'])
+    try:
+        instance = get_server(nova, name)
+        instance.delete()
+        wait_instance(
+            nova,
+            instance,
+            timeout=timeout,
+            target_state='deleted',
+            transition_states=('deleting', 'shutoff', 'active'),
+        )
+    except nova_exections.NotFound:
+        print("Succeeded to delete server:{}".format(name), file=sys.stderr)
+
+
+def delete_servers(env, vms, users):
+    for name, vm in vms.items():
+        delete_server(env, name, vm, users, env.get('timeout', 300))

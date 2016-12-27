@@ -14,6 +14,7 @@ import sys
 
 from utils import common
 from utils import keystone
+from utils import nova
 
 
 env_file = sys.argv[1]
@@ -23,4 +24,7 @@ admin = keystone.admin_session(**target_env['env']['admin'])
 target_env['env']['admin'] = admin
 keystone_client = keystone.keystone_client(admin)
 
+users = keystone.find_or_create_users(keystone_client, target_env['user'])
+
+nova.delete_servers(target_env, target_env['vm'], users)
 keystone.delete_users(keystone_client, target_env['user'])
