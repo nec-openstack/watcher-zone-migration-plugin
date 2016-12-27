@@ -64,7 +64,7 @@ def wait_instance(
         if _timeout > timeout:
             raise RuntimeError("Timeout!")
         instance = cinder.volumes.get(instance.id)
-        status = instance.status
+        status = getattr(instance, status_attr)
 
 
 def create_volume(env, name, volume, users, timeout=300):
