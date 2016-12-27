@@ -59,6 +59,7 @@ def create_volume(env, name, volume, users, timeout=300):
     instance = cinder.volumes.create(
         volume['size'],
         name=name,
+        volume_type=volume.get('type', None),
         availability_zone=env['env']['availability_zone'],
     )
     # Set instancd id to env file
