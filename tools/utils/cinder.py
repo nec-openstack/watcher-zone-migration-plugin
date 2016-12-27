@@ -39,9 +39,10 @@ def wait_instance(
     timeout=300,
     target_states=('in-use', 'available'),
     transition_states=('creating'),
+    status_attr='status',
     ):
     _timeout = 0
-    status = instance.status
+    status = getattr(instance, status_attr)
     while status not in target_states:
         if status not in transition_states:
             raise RuntimeError(
@@ -99,6 +100,15 @@ def create_volume(env, name, volume, users, timeout=300):
                 src,
                 False,
                 False,
+            )
+            wait_instance(
+                cinder,
+                instance,
+                timeout,
+                target_states=('success'),
+                transition_states=(
+                    None, 'starting', 'migrating', 'completing'),
+                status_attr='migration_status',
             )
 
     status = volume.get('status')
