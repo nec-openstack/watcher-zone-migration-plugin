@@ -84,7 +84,10 @@ def create_server(env, name, vm, users, timeout=300):
 
     az = None
     if vm.get('src_hostname', None):
-        az = '%s:%s' % (env['env'].get('availability_zone'), vm['src_hostname'])
+        az = '{0}:{1}'.format(
+            env['env'].get('availability_zone'),
+            vm['src_hostname']
+        )
 
     instance = nova.servers.create(
         name=name,
