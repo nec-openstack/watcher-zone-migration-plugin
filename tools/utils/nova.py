@@ -88,6 +88,8 @@ def create_server(env, name, vm, users, timeout=300):
             env['env'].get('availability_zone', {}).get('nova'),
             vm['src_hostname']
         )
+    else:
+        az = env['env'].get('availability_zone', {}).get('nova')
 
     try:
         instance = get_server(nova, name)

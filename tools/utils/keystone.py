@@ -90,11 +90,11 @@ def create_session(auth_url, user):
     return session.Session(auth=auth)
 
 
-def create_user(keystone, user):
+def create_user(keystone, name, user):
     project = get_project(keystone, user['project'])
     domain = get_domain(keystone, user['domain'])
     _user = keystone.users.create(
-        user['username'],
+        name,
         password=user['password'],
         domain=domain,
         project=project,
@@ -107,7 +107,7 @@ def create_user(keystone, user):
 
 def delete_user(keystone, user):
     try:
-        user = get_user(keystone, user['username'])
+        user = get_user(keystone, user)
         keystone.users.delete(user)
     except ValueError:
         pass
@@ -118,9 +118,9 @@ def find_or_create_users(keystone, users={}):
     for key, user in users.items():
         _users[key] = user
         try:
-            _users[key]['user'] = get_user(keystone, user['username'])
+            _users[key]['user'] = get_user(keystone, key)
         except ValueError:
-            _users[key]['user'] = create_user(keystone, user)
+            _users[key]['user'] = create_user(keystone, key, user)
 
         _users[key]['session'] = create_session(
             keystone.session.auth.auth_url,
@@ -130,5 +130,5 @@ def find_or_create_users(keystone, users={}):
 
 
 def delete_users(keystone, users={}):
-    for _, user in users.items():
+    for user, _ in users.items():
         delete_user(keystone, user)

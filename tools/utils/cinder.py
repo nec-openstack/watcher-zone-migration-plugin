@@ -81,7 +81,7 @@ def create_volume(env, name, volume, users, timeout=300):
         )
     except cinder_exections.NotFound:
         instance = cinder.volumes.create(
-            volume['size'],
+            volume.get('size', 10),
             name=name,
             volume_type=volume.get('type', None),
             availability_zone=env['env'].get('availability_zone', {})
