@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu
+export LC_ALL=C
+
+OS_WATCHER_AUDIT_INPUT_FILE=${1:-$OS_WATHER_AUDIT_INPUT_FILE}
+OS_WATCHER_GOAL_ID=${OS_WATCHER_GOAL_ID:-"192afd7b-84b2-48a0-b755-b2b1b5a3227b"}
+OS_WATCHER_GOAL_ID=${2:-$OS_WATCHER_GOAL_ID}
+OS_WATCHER_STRATEGY_ID=${OS_WATCHER_STRATEGY_ID:-"85d39b54-6bd4-4cd4-8e92-920498388742"}
+OS_WATCHER_STRATEGY_ID=${3:-$OS_WATCHER_STRATEGY_ID}
+
+params=`cat ${OS_WATCHER_AUDIT_INPUT_FILE}`
+params=`echo ${params}`
+
+watcher audit create \
+        -g ${OS_WATCHER_GOAL_ID} \
+        -s ${OS_WATCHER_STRATEGY_ID} \
+        -p params="${params}"

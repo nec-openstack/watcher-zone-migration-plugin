@@ -1,0 +1,26 @@
+{
+  "vm": {
+    "3339b130-6da9-43c0-a82a-5e8b38cbdf5f": {
+      "dst_hostname": "compute02",
+      "src_hostname": "compute01",
+      "status": "active"
+    },
+    "a8110285-9868-4046-87ad-3c97075cf866": {
+      "dst_hostname": "compute02",
+      "src_hostname": "compute01",
+      "status": "shutoff"
+    }
+  },
+  "volume": {
+    "28db7c91-754a-4603-9ff7-96655b635980": {
+      "dst_hostname": "controller@lvmdriver-1#lvmdriver-1",
+      "src_hostname": "controller@lvmdriver-1#lvmdriver-1",
+      "status": "available"
+    },
+    "4bb586f0-70c7-4fe8-9c95-e80438ad5f19": {
+      "dst_hostname": "",
+      "src_hostname": "controller@lvmdriver-1#lvmdriver-1",
+      "status": "in-use"
+    }
+  }
+}
