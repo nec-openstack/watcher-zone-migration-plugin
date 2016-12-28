@@ -29,6 +29,23 @@ Zone マイグレーションで利用する Watcher に渡すパラメータフ
 -   移動対象となる VM 及びボリュームを配置するテナントが作成されていること。
 -   移動対象となる VM が属するネットワークが作成されていること。
 
+`テスト環境定義ファイル` に以下の形で事前環境を記述しておく必要がある。
+
+```yaml
+env:
+  availability_zone:     # マイグレーションする Zone の指定。
+    nova: nova
+    cinder: nova
+  admin:                 # 事前に登録された admin ユーザの認証情報。
+    auth_url: 'http://192.168.11.197:5000/v3/'
+    password: openstack
+    username: admin
+    user_domain_id: default
+    project_name: admin
+    project_domain_id: default
+---
+```
+
 ### 制限事項
 
 -   対象となるテナントはネットワークを二つ以上持つことができない。
