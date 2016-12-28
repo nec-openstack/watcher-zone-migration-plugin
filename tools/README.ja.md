@@ -2,8 +2,9 @@
 
 ## TL;DR
 
--   `execute_test.py`
-    -   TBD
+-   `execute_test.sh`
+    -   `create_test_env.py` 生成したインプットを元に、
+        watcher の audit を作成するスクリプト。
 -   `create_test_env.py`
     -   Zone マイグレーションのテスト環境を作成するスクリプト。
 -   `delete_test_env.py`
@@ -11,7 +12,20 @@
 
 ## execute_test.py
 
-TBD
+### 使い方
+
+    $ bash execute_test.sh input.json \
+                           ${OS_WATCHER_GOAL_ID} \
+                           ${OS_WATCHER_STRATEGY_ID}
+
+-   `input.json`:
+    `create_test_env.py` で生成したパラメータファイル。
+-   `${OS_WATCHER_GOAL_ID}`:
+    Watcher の Goal の ID。 (デフォルト: `${OS_WATCHER_GOAL_ID}`)
+-   `${OS_WATCHER_STRATEGY_ID}`:
+    Watcher の Starategy の ID。 (デフォルト: `${OS_WATCHER_STRATEGY_ID}`)
+
+内部では　`audit audit create`　を呼んでいるだけ。
 
 ## create_test_env.py
 
@@ -142,4 +156,8 @@ volume1:                  # Volume名 (ユニーク)
 
 ## delete_test_env.py
 
-TBD
+### 使い方
+
+    $ python delete_test_env.py `テスト環境定義ファイル`
+
+以上で、テスト環境定義ファイルで定義されたVM及びボリュームが削除される。
