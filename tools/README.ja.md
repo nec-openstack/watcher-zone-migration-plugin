@@ -10,7 +10,9 @@
 -   `delete_test_env.py`
     -   上記スクリプトで作成したテスト環境を削除するスクリプト。
 
-## execute_test.py
+## execute_test.sh
+
+audit を作成し、Zone マイグレーションを実施します。
 
 ### 使い方
 
