@@ -1,0 +1,37 @@
+---
+env:
+  availability_zone:
+    nova: nova
+    cinder: nova
+  admin:
+    auth_url: 'http://192.168.11.197:5000/v3/'
+    password: openstack
+    username: admin
+    user_domain_id: default
+    project_name: admin
+    project_domain_id: default
+
+user:
+  test1:
+    password: password
+    project: demo
+    domain: default
+    # admin role is required if src_hostname is specified.
+    roles: [admin]
+
+vm:
+  instance-mix-01:
+    status: active
+    src_hostname: compute01
+    dst_hostname: compute02
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1
+  instance-mix-02:
+    status: shutoff
+    src_hostname: compute01
+    # コールドマイグレーションの場合は行き先ホストを指定しても無視される。
+    # dst_hostname: compute02
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1

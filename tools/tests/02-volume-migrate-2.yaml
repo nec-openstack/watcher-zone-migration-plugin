@@ -1,0 +1,38 @@
+---
+env:
+  availability_zone:
+    nova: nova
+    cinder: nova
+  admin:
+    auth_url: 'http://192.168.11.197:5000/v3/'
+    password: openstack
+    username: admin
+    user_domain_id: default
+    project_name: admin
+    project_domain_id: default
+
+user:
+  test1:
+    password: password
+    project: demo
+    domain: default
+    # admin role is required if src_hostname is specified.
+    roles: [admin]
+
+volume:
+  volume-vm-01:
+    status: available
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    # コールドマイグレーションの場合は `dst_hostname` は必須。
+    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
+    type: lvmdriver-1
+    size: 10
+    user: test1
+  volume-vm-02:
+    status: available
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    # コールドマイグレーションの場合は `dst_hostname` は必須。
+    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
+    type: lvmdriver-1
+    size: 10
+    user: test1

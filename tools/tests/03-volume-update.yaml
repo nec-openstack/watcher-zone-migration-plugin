@@ -1,0 +1,58 @@
+---
+env:
+  availability_zone:
+    nova: nova
+    cinder: nova
+  admin:
+    auth_url: 'http://192.168.11.197:5000/v3/'
+    password: openstack
+    username: admin
+    user_domain_id: default
+    project_name: admin
+    project_domain_id: default
+
+user:
+  test1:
+    password: password
+    project: demo
+    domain: default
+    # admin role is required if src_hostname is specified.
+    roles: [admin]
+
+vm:
+  # (volume-vu-01 アタッチ用VM)
+  instance-vu-01:
+    status: active
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1
+    # volume のみのマイグレーションをテストしたいため、
+    # Zoneマイグレーションの対象外とするために、入力ファイルへの出力を無視する。
+    output: ignore
+  # (volume-vu-02 アタッチ用VM)
+  instance-vu-02:
+    status: active
+    flavor: m1.small
+    image: cirros-0.3.4-x86_64-uec
+    user: test1
+    # volume のみのマイグレーションをテストしたいため、
+    # Zoneマイグレーションの対象外とするために、入力ファイルへの出力を無視する。
+    output: ignore
+
+volume:
+  volume-vu-01:
+    status: in-use
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    # volume-update の場合は `dst_hostname` は無視される。
+    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
+    attached_to: instance-vu-01
+    type: lvmdriver-1
+    size: 10
+    user: test1
+  volume-vu-02:
+    status: in-use
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    attached_to: instance-vu-02
+    type: lvmdriver-1
+    size: 10
+    user: test1
