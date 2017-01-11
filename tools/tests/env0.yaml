@@ -45,9 +45,7 @@ vm:
 volume:
   volume1:
     <<: *volume_default
-    status: available
     dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
   volume2:
     <<: *volume_default
-    status: in-use
     attached_to: instance1

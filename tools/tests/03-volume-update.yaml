@@ -41,7 +41,6 @@ vm:
 
 volume:
   volume-vu-01:
-    status: in-use
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     # volume-update の場合は `dst_hostname` は無視される。
     dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
@@ -50,7 +49,6 @@ volume:
     size: 10
     user: test1
   volume-vu-02:
-    status: in-use
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     attached_to: instance-vu-02
     type: lvmdriver-1

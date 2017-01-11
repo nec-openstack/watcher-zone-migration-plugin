@@ -125,7 +125,6 @@ instance1:                        # VM名 (ユニーク)
 
 ```yaml
 volume1:                  # Volume名 (ユニーク)
-  status: available       # ステータス (available/in-use)(オプション)
   src_hostname: 'controller@lvmdriver-1#lvmdriver-1'  # 移動元プール名 (オプション)
   dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'  # 移動先プール名 (オプション)
   attached_to: instance1  # アタッチ先インスタンス名 (オプション)
@@ -136,14 +135,11 @@ volume1:                  # Volume名 (ユニーク)
 ---
 ```
 
--   `ステータス`: available か　in-use かを指定する。in-use であった場合は、
-    **attached_to を指定する必要** がある。
-    また、in-use の場合、dst_hostname は無視される。
 -   `移動元プール名`: cinder は基本的に移動元プール名を指定して volume を作成することができない。
     そのため、本ツールでは、移動元プール名が指定されていた場合は、
     一旦起動したのちにプール名を確認後、移動元プールに `cinder migrate` を試みる。
--   `移動先プール名`: **volume のステータスが　`available` であった場合必須。**
--   `アタッチ先インスタンス名`: **`ステータス` が `in-use` であった場合必須。**
+-   `移動先プール名`: **volume に `attached_to` を指定していなかった場合必須。**
+-   `アタッチ先インスタンス名`:　VM に作成したボリュームをアタッチしたかった場合に指定する。
     上記の VM 作成セクションで定義された VM 名である必要がある。
 -   `ユーザ名`: 上記ユーザ作成セクションで定義されたユーザ名である必要がある。
 -   `出力制御フラグ`: `ignore` が指定された場合、

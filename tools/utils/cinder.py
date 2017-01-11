@@ -112,9 +112,9 @@ def create_volume(env, name, volume, users, timeout=300):
                 status_attr='migration_status',
             )
 
-    status = volume.get('status')
     attached_to = volume.get('attached_to')
-    if status == 'in-use' and attached_to is not None:
+    if attached_to is not None:
+        volume['status'] = 'in-use'
         try:
             wait_instance(cinder, instance, timeout)
             nova_client = nova.nova_client(session)
@@ -127,6 +127,8 @@ def create_volume(env, name, volume, users, timeout=300):
             )
         except KeyError:
             sys.stderr.write('No server attached to: %s \n' % attached_to)
+    else:
+        volume['status'] = 'available'
 
 
 def create_volumes(env, volumes, users):
