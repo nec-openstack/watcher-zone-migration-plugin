@@ -21,7 +21,6 @@ user:
 
 volume:
   volume-vm-01:
-    status: available
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     # コールドマイグレーションの場合は `dst_hostname` は必須。
     dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
@@ -29,7 +28,6 @@ volume:
     size: 10
     user: test1
   volume-vm-02:
-    status: available
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     # コールドマイグレーションの場合は `dst_hostname` は必須。
     dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
