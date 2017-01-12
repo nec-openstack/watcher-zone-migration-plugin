@@ -30,8 +30,8 @@ admin = keystone.admin_session(**admin)
 target_env['env']['admin'] = admin
 keystone_client = keystone.keystone_client(admin)
 
-users = keystone.find_or_create_users(keystone_client, users)
+users = tools.find_or_create_users(keystone_client, users)
 
 tools.delete_servers(target_env, target_env.get('vm', {}), users)
 tools.delete_volumes(target_env, target_env.get('volume', {}), users)
-keystone.delete_users(keystone_client, target_env['user'])
+tools.delete_users(keystone_client, target_env['user'])

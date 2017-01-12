@@ -19,13 +19,54 @@ from novaclient import exceptions as nova_exections
 
 from utils import cinder
 from utils import glance
+from utils import keystone
 from utils import nova
+
+
+DEFAULT_PUB_KEY = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0ol7jQ4umQMr' \
+                  'E1qtXnyeYk/23g6zVJyVPh0+rljElu/7zj6iJZtixxs+LebPH6m' \
+                  'ZP13RIGPP0GlrSXRVBj9F2pjb/Y/PMyHBq3+BMeiYhn6XmNMwtT' \
+                  'K2O69vvFZQi0M3wTVSezP9OxxrPay+eCXkGVi8lnh6ZDMrvSKI2' \
+                  'c5SQ7wFJfT/4XTxzcP2gsotRV0rzADie1EF4MYke+ZJuiwnrFbZ' \
+                  'peogrNtSvivR4f/g0/fD8NOjCKgbk4uY//6YhEqNaGhm0wABKt0' \
+                  'MtimmxLLe2kosoFS539t88y5tD4ispcxlOAtVKZEL1ogf0VRrcB' \
+                  'WSTfIiJty5vw6aRTfoFwuzZ hoge@example.com'
+
+
+def find_or_create_users(keystone_client, users={}):
+    _users = {}
+    for key, user in users.items():
+        _users[key] = user
+        try:
+            _users[key]['user'] = keystone.get_user(keystone_client, key)
+        except ValueError:
+            _users[key]['user'] = keystone.create_user(
+                keystone_client, key, user)
+
+        _users[key]['session'] = keystone.create_session(
+            keystone_client.session.auth.auth_url,
+            user,
+        )
+
+        pub_key = user.get('pub_key', DEFAULT_PUB_KEY)
+        _users[key]['nova'] = nova.nova_client(_users[key]['session'])
+        nova_client = _users[key]['nova']
+        nova.delete_keypair(nova_client, key)
+        nova.create_keypair(nova_client, key, pub_key)
+    return _users
+
+
+def delete_users(keystone_client, users={}):
+    for user, _ in users.items():
+        keystone.delete_user(keystone_client, user)
 
 
 def create_server(env, name, vm, users, timeout=300):
     print("Start to create server: {}".format(name), file=sys.stderr)
 
-    nova_client = nova.nova_client(users[vm['user']]['session'])
+    nova_client = users[vm['user']].get('nova', None)
+    if nova_client is None:
+        nova_client = nova.nova_client(users[vm['user']]['session'])
     glance_client = glance.glance_client(users[vm['user']]['session'])
     flavor = nova.get_flavor(nova_client, vm['flavor'])
     image = glance.get_image(glance_client, vm['image'])
@@ -73,6 +114,7 @@ def create_server(env, name, vm, users, timeout=300):
             name=name,
             image=image,
             flavor=flavor,
+            key_name=vm['user'],
             availability_zone=az,
             block_device_mapping_v2=block_device_mapping_v2,
         )

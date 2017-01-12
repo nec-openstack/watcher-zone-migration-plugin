@@ -32,7 +32,7 @@ admin = keystone.admin_session(**admin)
 target_env['env']['admin'] = admin
 keystone_client = keystone.keystone_client(admin)
 
-users = keystone.find_or_create_users(keystone_client, users)
+users = tools.find_or_create_users(keystone_client, users)
 
 vms = target_env.get('vm', {})
 volumes = target_env.get('volume', {})

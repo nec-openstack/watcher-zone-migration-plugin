@@ -23,6 +23,26 @@ def nova_client(session):
     return novaclient.Client('2.1', session=session)
 
 
+def get_keypair(nova, name_or_id):
+    try:
+        keypair = nova.keypairs.get(name_or_id)
+        return keypair
+    except nova_exections.NotFound:
+        return nova.keypairs.find(name=name_or_id)
+
+
+def create_keypair(nova, name, pub_key):
+    nova.keypairs.create(name, pub_key)
+
+
+def delete_keypair(nova, name):
+    try:
+        keypair = get_keypair(nova, name)
+        nova.keypairs.delete(keypair)
+    except nova_exections.NotFound:
+        pass
+
+
 def get_flavor(nova, name_or_id):
     try:
         flavor = nova.flavors.get(name_or_id)

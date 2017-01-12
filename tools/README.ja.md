@@ -86,6 +86,7 @@ test1:                # ユーザ名 (ユニーク)
   project: demo       # 所属するテナント名またはID (必須)
   domain: default     # 所属するドメイン名またはID (必須)
   roles: [admin]      # プロジェクトでの role。admin であることが推奨。 (必須)
+  pub_key: "ssh-rsa AAAA...TfoFwuzZ hoge@example.com" # SSH 用の公開鍵 (オプション)
 ---
 ```
 

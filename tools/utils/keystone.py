@@ -111,24 +111,3 @@ def delete_user(keystone, user):
         keystone.users.delete(user)
     except ValueError:
         pass
-
-
-def find_or_create_users(keystone, users={}):
-    _users = {}
-    for key, user in users.items():
-        _users[key] = user
-        try:
-            _users[key]['user'] = get_user(keystone, key)
-        except ValueError:
-            _users[key]['user'] = create_user(keystone, key, user)
-
-        _users[key]['session'] = create_session(
-            keystone.session.auth.auth_url,
-            user,
-        )
-    return _users
-
-
-def delete_users(keystone, users={}):
-    for user, _ in users.items():
-        delete_user(keystone, user)
