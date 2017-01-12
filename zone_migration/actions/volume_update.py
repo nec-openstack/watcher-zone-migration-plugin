@@ -21,7 +21,6 @@ import voluptuous
 
 from cinderclient import client as local_cinder
 from cinderclient import exceptions as ce
-from keystoneauth1.exceptions import http as ks_exceptions
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from watcher.applier.actions import base
@@ -73,15 +72,14 @@ class VolumeUpdateAction(base.BaseAction):
     def migrate(self, server_id, attachment_id):
         retry = CONF.zone_migration.retry
         retry_interval = CONF.zone_migration.retry_interval
-        project = self.keystone.projects.get(self.src_volume_attr["tenant_id"])
-        user = self.get_user(self.temp_user_name)
+        user = self.keystone.users.find(name=self.temp_user_name)
 
         LOG.debug("auth_url: " + CONF.watcher_clients_auth.auth_url)
         LOG.debug("user_id: " + user.id)
         LOG.debug("password: " + self.temp_user_password)
         LOG.debug("project_id: " + user.default_project_id)
 
-        loader = loading.get_plugin_loader('v3password')
+        loader = loading.get_plugin_loader('password')
         auth = loader.load_from_options(
             auth_url=CONF.watcher_clients_auth.auth_url,
             user_id=user.id,
@@ -95,7 +93,6 @@ class VolumeUpdateAction(base.BaseAction):
             name=self.src_volume_attr["name"],
             volume_type=self.src_volume_attr["volume_type"],
             availability_zone=self.src_volume_attr["availability_zone"])
-        LOG.debug("after cinder.volumes.create")
         while getattr(new_volume, 'status') != 'available':
             new_volume = cinder.volumes.get(new_volume.id)
             LOG.debug('Waiting volume creation of {0}'.format(new_volume))
@@ -167,40 +164,16 @@ class VolumeUpdateAction(base.BaseAction):
 
     def create_temp_user(self):
         project = self.keystone.projects.get(self.src_volume_attr["tenant_id"])
-        domain = self.get_domain(CONF.watcher_clients_auth.user_domain_name)
+        domain = self.keystone.domains.find(
+            name=CONF.watcher_clients_auth.user_domain_name)
         self.keystone.users.create(self.temp_user_name,
                                    password=self.temp_user_password,
                                    domain=domain,
                                    project=project)
-        LOG.debug("created user: " + self.temp_user_name + "password is: " + self.temp_user_password)
+        LOG.debug("created user: " + self.temp_user_name)
         role = self.keystone.roles.find(name=self.TEMP_USER_ROLE)
         user = self.keystone.users.find(name=self.temp_user_name)
         self.keystone.roles.grant(role.id, user=user.id, project=project.id)
-
-    def get_user(self, name_or_id):
-        try:
-            user = self.keystone.users.get(name_or_id)
-            return user
-        except ks_exceptions.NotFound:
-            users = self.keystone.users.list(name=name_or_id)
-            if len(users) == 0:
-                raise ValueError('User not Found: %s' % name_or_id)
-            if len(users) > 1:
-                raise ValueError('User name seems ambiguous: %s' % name_or_id)
-            return users[0]
-
-    def get_domain(self, name_or_id):
-        try:
-            domain = self.keystone.domains.get(name_or_id)
-            return domain
-        except ks_exceptions.NotFound:
-            domains = self.keystone.domains.list(name=name_or_id)
-            if len(domains) == 0:
-                raise ValueError('Domain not Found: %s' % name_or_id)
-            if len(domains) > 1:
-                raise ValueError('Domain name seems ambiguous: %s' % name_or_id)
-            return domains[0]
-
 
     def execute(self):
         return self.migrate(self.server_id, self.attachment_id)
@@ -217,5 +190,5 @@ class VolumeUpdateAction(base.BaseAction):
 
     def post_condition(self):
         user = self.keystone.users.find(name=self.temp_user_name)
-        #if user:
-        #    self.keystone.users.delete(user)
+        if user:
+            self.keystone.users.delete(user)
