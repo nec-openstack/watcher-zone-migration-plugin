@@ -76,7 +76,6 @@ class VolumeUpdateAction(base.BaseAction):
 
         LOG.debug("auth_url: " + CONF.watcher_clients_auth.auth_url)
         LOG.debug("user_id: " + user.id)
-        LOG.debug("password: " + self.temp_user_password)
         LOG.debug("project_id: " + user.default_project_id)
 
         loader = loading.get_plugin_loader('password')
