@@ -27,7 +27,9 @@ vm:
     image: cirros-0.3.4-x86_64-uec
     user: test1
     status: active
+    availability_zone: nova
     boot_volume:
       src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
       type: lvmdriver-1
+      availability_zone: nova
       size: 5
