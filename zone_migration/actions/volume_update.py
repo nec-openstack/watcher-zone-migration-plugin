@@ -72,12 +72,18 @@ class VolumeUpdateAction(base.BaseAction):
     def migrate(self, server_id, attachment_id):
         retry = CONF.zone_migration.retry
         retry_interval = CONF.zone_migration.retry_interval
+        user = self.keystone.users.find(name=self.temp_user_name)
+
+        LOG.debug("auth_url: " + CONF.watcher_clients_auth.auth_url)
+        LOG.debug("user_id: " + user.id)
+        LOG.debug("project_id: " + user.default_project_id)
+
         loader = loading.get_plugin_loader('password')
         auth = loader.load_from_options(
-            auth_url=CONF.keystone_authtoken.auth_uri,
-            username=self.temp_user_name,
+            auth_url=CONF.watcher_clients_auth.auth_url,
+            user_id=user.id,
             password=self.temp_user_password,
-            project_id=self.src_volume_attr["tenant_id"])
+            project_id=user.default_project_id)
         sess = session.Session(auth=auth)
         cinder = local_cinder.Client(2, session=sess)
         # create new volume
@@ -87,7 +93,7 @@ class VolumeUpdateAction(base.BaseAction):
             volume_type=self.src_volume_attr["volume_type"],
             availability_zone=self.src_volume_attr["availability_zone"])
         while getattr(new_volume, 'status') != 'available':
-            new_volume = self.cinder.volumes.get(new_volume.id)
+            new_volume = cinder.volumes.get(new_volume.id)
             LOG.debug('Waiting volume creation of {0}'.format(new_volume))
             time.sleep(retry_interval)
         LOG.debug("Volume %s was created successfully." % new_volume)
@@ -156,13 +162,17 @@ class VolumeUpdateAction(base.BaseAction):
         return self._temp_user_password
 
     def create_temp_user(self):
-        project_id = self.src_volume_attr["tenant_id"]
+        project = self.keystone.projects.get(self.src_volume_attr["tenant_id"])
+        domain = self.keystone.domains.find(
+            name=CONF.watcher_clients_auth.user_domain_name)
         self.keystone.users.create(self.temp_user_name,
                                    password=self.temp_user_password,
-                                   project=self.src_volume_attr["tenant_id"])
+                                   domain=domain,
+                                   project=project)
+        LOG.debug("created user: " + self.temp_user_name)
         role = self.keystone.roles.find(name=self.TEMP_USER_ROLE)
         user = self.keystone.users.find(name=self.temp_user_name)
-        self.keystone.roles.grant(role.id, user=user.id, project=project_id)
+        self.keystone.roles.grant(role.id, user=user.id, project=project.id)
 
     def execute(self):
         return self.migrate(self.server_id, self.attachment_id)
