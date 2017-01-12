@@ -104,6 +104,10 @@ instance1:                        # VM名 (ユニーク)
   dst_hostname: compute02         # 移動先コンピュート名 (オプション)
   flavor: m1.small                # フレーバー名 (必須)
   image: cirros-0.3.4-x86_64-uec  # イメージ名 (必須)
+  boot_volume:                    # Boot from volume 用のボリューム (オプション)
+    src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    type: lvmdriver-1
+    size: 5
   user: test1                     # ユーザ名 (必須)
   output: ignore                  # 出力制御フラグ (オプション)
 ---
@@ -114,6 +118,8 @@ instance1:                        # VM名 (ユニーク)
     stop を行う。
 -   `フレーバ名`: 事前に作成しておく必要がある。
 -   `イメージ名`: 事前に登録しておく必要がある。
+-   `Boot from volume 用のボリューム`: ボリュームから起動する場合のボリュームの仕様を指定する。
+    指定できるパラメータは下記で記載するボリューム作成オプションとほぼ同じである。
 -   `ユーザ名`: 上記ユーザ作成セクションで定義されたユーザ名である必要がある。
 -   `出力制御フラグ`: `ignore` が指定された場合、
     Watcher に渡すパラメータファイルに作成されたインスタンスが含まれなくなる。
