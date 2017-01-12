@@ -37,7 +37,7 @@ def wait_instance(
     cinder,
     instance,
     timeout=300,
-    target_states=('in-use', 'available'),
+    target_states=('in-use', 'available', 'downloading'),
     transition_states=('creating'),
     status_attr='status',
     ):
@@ -65,96 +65,3 @@ def wait_instance(
             raise RuntimeError("Timeout!")
         instance = cinder.volumes.get(instance.id)
         status = getattr(instance, status_attr)
-
-
-def create_volume(env, name, volume, users, timeout=300):
-    print("Start to create volume: {}".format(name), file=sys.stderr)
-
-    session = users[volume['user']]['session']
-    cinder = cinder_client(session)
-
-    try:
-        instance = get_volume(cinder, name)
-        print(
-            "[Warning]: Already exists volume: {}".format(name),
-            file=sys.stderr,
-        )
-    except cinder_exections.NotFound:
-        instance = cinder.volumes.create(
-            volume.get('size', 10),
-            name=name,
-            volume_type=volume.get('type', None),
-            availability_zone=env['env'].get('availability_zone', {})
-                                        .get('cinder'),
-        )
-
-    # Set instancd id to env file
-    volume['id'] = instance.id
-
-    src = volume.get('src_hostname', None)
-    if src:
-        wait_instance(cinder, instance, timeout)
-        if src != getattr(instance, 'os-vol-host-attr:host'):
-            cinder.volumes.migrate_volume(
-                instance,
-                src,
-                False,
-                False,
-            )
-            instance = cinder.volumes.get(instance.id)
-            wait_instance(
-                cinder,
-                instance,
-                timeout,
-                target_states=('success'),
-                transition_states=(
-                    'starting', 'migrating', 'completing'),
-                status_attr='migration_status',
-            )
-
-    attached_to = volume.get('attached_to')
-    if attached_to is not None:
-        volume['status'] = 'in-use'
-        try:
-            wait_instance(cinder, instance, timeout)
-            nova_client = nova.nova_client(session)
-            server_id = env['vm'][attached_to]['id']
-            server = nova.get_server(nova_client, server_id)
-            nova.wait_instance(nova_client, server, timeout)
-            nova_client.volumes.create_server_volume(
-                server_id,
-                instance.id,
-            )
-        except KeyError:
-            sys.stderr.write('No server attached to: %s \n' % attached_to)
-    else:
-        volume['status'] = 'available'
-
-
-def create_volumes(env, volumes, users):
-    for name, volume in volumes.items():
-        create_volume(env, name, volume, users, env.get('timeout', 300))
-
-
-def delete_volume(env, name, volume, users, timeout=300):
-    print("Start to delete volume: {}".format(name), file=sys.stderr)
-
-    session = users[volume['user']]['session']
-    cinder = cinder_client(session)
-    try:
-        volume = get_volume(cinder, name)
-        volume.delete()
-        wait_instance(
-            cinder,
-            volume,
-            timeout=timeout,
-            target_states=('deleted'),
-            transition_states=('deleting', 'in-use', 'available'),
-        )
-    except cinder_exections.NotFound:
-        print("Succeeded to delete volume:{}".format(name), file=sys.stderr)
-
-
-def delete_volumes(env, volumes, users):
-    for name, volume in volumes.items():
-        delete_volume(env, name, volume, users, env.get('timeout', 300))

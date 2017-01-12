@@ -18,6 +18,7 @@ from utils import cinder
 from utils import common
 from utils import keystone
 from utils import nova
+from utils import tools
 
 env_file = sys.argv[1]
 target_env = common.load_target_env(env_file)
@@ -37,8 +38,8 @@ users = keystone.find_or_create_users(keystone_client, users)
 
 vms = target_env.get('vm', {})
 volumes = target_env.get('volume', {})
-nova.create_servers(target_env, vms, users)
-cinder.create_volumes(target_env, volumes, users)
+tools.create_servers(target_env, vms, users)
+tools.create_volumes(target_env, volumes, users)
 
 params = {
     'vm': {},

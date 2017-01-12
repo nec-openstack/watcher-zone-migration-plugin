@@ -16,6 +16,7 @@ from utils import cinder
 from utils import common
 from utils import keystone
 from utils import nova
+from utils import tools
 
 env_file = sys.argv[1]
 target_env = common.load_target_env(env_file)
@@ -33,6 +34,6 @@ keystone_client = keystone.keystone_client(admin)
 
 users = keystone.find_or_create_users(keystone_client, users)
 
-nova.delete_servers(target_env, target_env.get('vm', {}), users)
-cinder.delete_volumes(target_env, target_env.get('volume', {}), users)
+tools.delete_servers(target_env, target_env.get('vm', {}), users)
+tools.delete_volumes(target_env, target_env.get('volume', {}), users)
 keystone.delete_users(keystone_client, target_env['user'])
