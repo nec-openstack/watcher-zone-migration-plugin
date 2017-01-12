@@ -71,15 +71,20 @@ def create_server(env, name, vm, users, timeout=300):
     flavor = nova.get_flavor(nova_client, vm['flavor'])
     image = glance.get_image(glance_client, vm['image'])
     boot_volume = vm.get('boot_volume', None)
+    default_az = env['env'].get('availability_zone', {}).get('nova')
+    availability_zone = vm.get(
+        'availability_zone',
+        default_az
+    )
 
     az = None
     if vm.get('src_hostname', None):
         az = '{0}:{1}'.format(
-            env['env'].get('availability_zone', {}).get('nova'),
+            availability_zone,
             vm['src_hostname']
         )
     else:
-        az = env['env'].get('availability_zone', {}).get('nova')
+        az = availability_zone
 
     block_device_mapping_v2 = None
     if boot_volume:
@@ -165,6 +170,11 @@ def create_volume(env, name, volume, users, timeout=300):
     cinder_client = cinder.cinder_client(session)
     image_id = volume.get('image_id', None)
     attached_to = volume.get('attached_to', None)
+    default_az = env['env'].get('availability_zone', {}).get('cinder')
+    availability_zone = volume.get(
+        'availability_zone',
+        default_az
+    )
 
     try:
         instance = cinder.get_volume(cinder_client, name)
@@ -178,8 +188,7 @@ def create_volume(env, name, volume, users, timeout=300):
             name=name,
             imageRef=image_id,
             volume_type=volume.get('type', None),
-            availability_zone=env['env'].get('availability_zone', {})
-                                        .get('cinder'),
+            availability_zone=availability_zone,
         )
 
     # Set instancd id to env file
