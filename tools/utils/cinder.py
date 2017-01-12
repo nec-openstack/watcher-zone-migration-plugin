@@ -18,8 +18,6 @@ import time
 from cinderclient import client as cinderclient
 from cinderclient import exceptions as cinder_exections
 
-from utils import nova
-
 
 def cinder_client(session):
     return cinderclient.Client(2, session=session)

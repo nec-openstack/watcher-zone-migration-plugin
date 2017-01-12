@@ -87,6 +87,7 @@ def create_server(env, name, vm, users, timeout=300):
 
     return instance
 
+
 def create_servers(env, vms, users):
     for name, vm in vms.items():
         create_server(env, name, vm, users, env.get('timeout', 300))
@@ -183,6 +184,7 @@ def create_volume(env, name, volume, users, timeout=300):
         volume['status'] = 'available'
 
     return instance
+
 
 def create_volumes(env, volumes, users):
     for name, volume in volumes.items():

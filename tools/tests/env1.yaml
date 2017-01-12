@@ -17,6 +17,7 @@ user:
     domain: default
     # admin role is required if src_hostname is specified.
     roles: [admin, Member]
+
 vm:
   instance-env1-1:
     src_hostname: compute01

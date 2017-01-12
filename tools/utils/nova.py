@@ -18,8 +18,6 @@ import time
 from novaclient import client as novaclient
 from novaclient import exceptions as nova_exections
 
-from utils import glance
-
 
 def nova_client(session):
     return novaclient.Client('2.1', session=session)

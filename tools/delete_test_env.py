@@ -12,10 +12,8 @@
 #    under the License.
 import sys
 
-from utils import cinder
 from utils import common
 from utils import keystone
-from utils import nova
 from utils import tools
 
 env_file = sys.argv[1]

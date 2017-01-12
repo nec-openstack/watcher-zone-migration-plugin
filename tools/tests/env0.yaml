@@ -30,6 +30,7 @@ user:
     domain: default
     # admin role is required if src_hostname is specified.
     roles: [admin, Member]
+
 vm:
   instance1:
     <<: *vm_default
