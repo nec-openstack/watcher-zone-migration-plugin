@@ -10,14 +10,14 @@ zone_migration
 * ライセンス: Apache license
 
 インストール
-------------
+============
 
 .. code::
 
     pip install git+https://github.com/nec-openstack/watcher-zone-migration-plugin.git
 
 設定
------
+====
 
 .. list-table:: watcher.conf
    :widths: 10 10 20 20 30 10
@@ -55,7 +55,7 @@ zone_migration
      - 任意
 
 使い方
---------
+=======
 
 zone_migration ゴールとparallel_migration ストラテジーを指定してauditを作成する ::
 

@@ -10,14 +10,14 @@ This is the `third-party plugin for Watcher`_ for zone migration.
 * Free software: Apache license
 
 Install
--------
+=======
 
 .. code::
 
     pip install git+https://github.com/nec-openstack/watcher-zone-migration-plugin.git
 
 Configuration
--------------
+=============
 
 You have to add configuration as the following to /etc/watcher/watcher.conf:
 
