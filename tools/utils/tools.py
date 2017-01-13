@@ -219,7 +219,7 @@ def create_volume(env, name, volume, users, timeout=300):
                 timeout,
                 target_states=('success'),
                 transition_states=(
-                    'available', 'starting', 'migrating', 'completing'),
+                    'starting', 'migrating', 'completing'),
                 status_attr='migration_status',
             )
 

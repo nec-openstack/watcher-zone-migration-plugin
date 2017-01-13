@@ -47,7 +47,7 @@ def wait_instance(
                 'Fail to volume "%s": %s (%s)' % (
                     target_states,
                     instance.name,
-                    instance.status
+                    status
                 )
             )
 
@@ -55,7 +55,7 @@ def wait_instance(
             'Waiting volume %s: %s (%s)\n' % (
                 target_states,
                 instance.name,
-                instance.status)
+                status)
         )
         time.sleep(5)
         _timeout += 5
