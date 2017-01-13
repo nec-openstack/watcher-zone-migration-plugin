@@ -35,6 +35,7 @@ vm:
   instance1:
     <<: *vm_default
     status: active
+    network: private
   instance2:
     <<: *vm_default
     status: shutoff

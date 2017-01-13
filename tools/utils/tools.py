@@ -20,6 +20,7 @@ from novaclient import exceptions as nova_exections
 from utils import cinder
 from utils import glance
 from utils import keystone
+from utils import neutron
 from utils import nova
 
 
@@ -68,9 +69,15 @@ def create_server(env, name, vm, users, timeout=300):
     if nova_client is None:
         nova_client = nova.nova_client(users[vm['user']]['session'])
     glance_client = glance.glance_client(users[vm['user']]['session'])
+    neutron_client = neutron.neutron_client(users[vm['user']]['session'])
     flavor = nova.get_flavor(nova_client, vm['flavor'])
     image = glance.get_image(glance_client, vm['image'])
     boot_volume = vm.get('boot_volume', None)
+    nics = []
+    network = vm.get('network', None)
+    if network is not None:
+        network = neutron.get_network(neutron_client, network)
+        nics = [{'net-id': network['id']}]
     default_az = env['env'].get('availability_zone', {}).get('nova')
     availability_zone = vm.get(
         'availability_zone',
@@ -120,6 +127,7 @@ def create_server(env, name, vm, users, timeout=300):
             image=image,
             flavor=flavor,
             key_name=vm['user'],
+            nics=nics,
             availability_zone=az,
             block_device_mapping_v2=block_device_mapping_v2,
         )

@@ -104,6 +104,7 @@ instance1:                        # VM名 (ユニーク)
   dst_hostname: compute02         # 移動先コンピュート名 (オプション)
   flavor: m1.small                # フレーバー名 (必須)
   image: cirros-0.3.4-x86_64-uec  # イメージ名 (必須)
+  network: private                # ネットワーク名 (オプション)
   boot_volume:                    # Boot from volume 用のボリューム (オプション)
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     type: lvmdriver-1
@@ -119,6 +120,7 @@ instance1:                        # VM名 (ユニーク)
     stop を行う。
 -   `フレーバ名`: 事前に作成しておく必要がある。
 -   `イメージ名`: 事前に登録しておく必要がある。
+-   `ネットワーク名`: VM が接続するネットワーク名。
 -   `Boot from volume 用のボリューム`: ボリュームから起動する場合のボリュームの仕様を指定する。
     指定できるパラメータは下記で記載するボリューム作成オプションとほぼ同じである。
 -   `アベイラビリティゾーン`: `env` セクションで指定したデフォルトのアベイラビリティゾーンを、

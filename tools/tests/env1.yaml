@@ -23,6 +23,7 @@ vm:
   instance-env1-1:
     src_hostname: compute01
     dst_hostname: compute02
+    network: private
     flavor: m1.small
     image: cirros-0.3.4-x86_64-uec
     user: test1
