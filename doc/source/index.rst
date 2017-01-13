@@ -11,8 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   readme
-   usage
+   install.ja
+   install_watcher.ja
+   usage.ja
+   configuration.ja
+   faq.ja
 
 Indices and tables
 ==================
