@@ -162,6 +162,16 @@ def delete_server(env, name, vm, users, timeout=300):
             target_states=('deleted'),
             transition_states=('deleting', 'shutoff', 'active'),
         )
+        boot_volume = vm.get('boot_volume', None)
+        if boot_volume:
+            boot_volume['user'] = vm['user']
+            volume = delete_volume(
+                env,
+                "{}-volume".format(name),
+                boot_volume,
+                users,
+                timeout
+            )
     except nova_exections.NotFound:
         print("Succeeded to delete server:{}".format(name), file=sys.stderr)
 
