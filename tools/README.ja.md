@@ -17,15 +17,15 @@ audit を作成し、Zone マイグレーションを実施します。
 ### 使い方
 
     $ bash execute_test.sh input.json \
-                           ${OS_WATCHER_GOAL_ID} \
-                           ${OS_WATCHER_STRATEGY_ID}
+                           ${OS_WATCHER_GOAL_NAME} \
+                           ${OS_WATCHER_STRATEGY_NAME}
 
 -   `input.json`:
     `create_test_env.py` で生成したパラメータファイル。
--   `${OS_WATCHER_GOAL_ID}`:
-    Watcher の Goal の ID。 (デフォルト: `${OS_WATCHER_GOAL_ID}`)
--   `${OS_WATCHER_STRATEGY_ID}`:
-    Watcher の Starategy の ID。 (デフォルト: `${OS_WATCHER_STRATEGY_ID}`)
+-   `${OS_WATCHER_GOAL_NAME}`:
+    Watcher の Goal の名前。 (デフォルト: `${OS_WATCHER_GOAL_NAME}`)
+-   `${OS_WATCHER_STRATEGY_NAME}`:
+    Watcher の Starategy の名前。 (デフォルト: `${OS_WATCHER_STRATEGY_NAME}`)
 
 内部では　`audit audit create`　を呼んでいるだけ。
 
