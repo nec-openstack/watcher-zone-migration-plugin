@@ -19,6 +19,7 @@ json objectは以下の形式 ::
          "<volume_id>": {
              "dst_hostname": "<volume_dst_hostname>", 
              "status": "<volume_status>"
+             "dst_type": "<volume_type>"
          }
      }
  }
@@ -31,6 +32,7 @@ json objectは以下の形式 ::
 :volume_id: ボリュームのID。複数のボリュームを指定するならば繰り返す。
 :volume_status:  アタッチされたボリュームならばin-use、デタッチされたボリュームならばavailable。
 :volume_dst_hostname: デタッチされたボリュームのマイグレーション先プール名。
+:volume_type: アタッチされたボリュームのマイグレーション先タイプ名。
 
 JSONの例
 ----------
@@ -50,7 +52,7 @@ JSONの例
      }
  }
 
-ボリュームID 5c5b71ba-c7d3-477d-b0c4-ea1958fae8feのデタッチされたボリュームをプールw113@lvm#lvmにマイグレーション、ボリュームID fddc94b1-8db4-4949-9f43-1054f13de9e3のアタッチされたボリュームを別のボリュームにアップデートする ::
+ボリュームID 5c5b71ba-c7d3-477d-b0c4-ea1958fae8feのデタッチされたボリュームをプールw113@lvm#lvmにマイグレーション、ボリュームID fddc94b1-8db4-4949-9f43-1054f13de9e3のアタッチされたボリュームを別のタイプ lvm1 のボリュームにアップデートする ::
 
  {
      "volume": {
@@ -59,7 +61,8 @@ JSONの例
              "status": "available"
          }, 
          "fddc94b1-8db4-4949-9f43-1054f13de9e3": {
-             "status": "in-use"
+             "status": "in-use",
+             "dst_type": "lvm1"
          }
      }
  }
