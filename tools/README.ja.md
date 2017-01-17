@@ -141,6 +141,7 @@ volume1:                  # Volume名 (ユニーク)
   dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'  # 移動先プール名 (オプション)
   attached_to: instance1  # アタッチ先インスタンス名 (オプション)
   type: lvmdriver-1       # ボリュームタイプ　(オプション)
+  dst_type: lvmdriver-2   # 移動先ボリュームタイプ　(オプション)
   size: 1                 # ボリュームサイズ (オプション)
   availability_zone: nova # アベイラビリティゾーン (オプション)
   user: test1             # ユーザ名 (必須)
@@ -152,6 +153,7 @@ volume1:                  # Volume名 (ユニーク)
     そのため、本ツールでは、移動元プール名が指定されていた場合は、
     一旦起動したのちにプール名を確認後、移動元プールに `cinder migrate` を試みる。
 -   `移動先プール名`: **volume に `attached_to` を指定していなかった場合必須。**
+-   `移動先ボリュームタイプ`: **volume に `attached_to` を指定していた場合必須。**
 -   `アタッチ先インスタンス名`:　VM に作成したボリュームをアタッチしたかった場合に指定する。
     上記の VM 作成セクションで定義された VM 名である必要がある。
 -   `アベイラビリティゾーン`: `env` セクションで指定したデフォルトのアベイラビリティゾーンを、

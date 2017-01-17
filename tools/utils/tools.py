@@ -118,7 +118,7 @@ def create_server(env, name, vm, users, timeout=300):
     try:
         instance = nova.get_server(nova_client, name)
         print(
-            "[Warning]: Already exists server: {}".format(name),
+            "***[WARN]: Already exists server: {}***".format(name),
             file=sys.stderr,
         )
     except nova_exections.NotFound:
@@ -197,7 +197,7 @@ def create_volume(env, name, volume, users, timeout=300):
     try:
         instance = cinder.get_volume(cinder_client, name)
         print(
-            "[Warning]: Already exists volume: {}".format(name),
+            "***[WARN]: Already exists volume: {}***".format(name),
             file=sys.stderr,
         )
     except cinder_exections.NotFound:
