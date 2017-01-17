@@ -15,6 +15,8 @@ import random
 import string
 import time
 
+import six
+
 from oslo_config import cfg
 from oslo_log import log
 import voluptuous
@@ -42,6 +44,7 @@ class VolumeUpdateAction(base.BaseAction):
     TEMP_USER_NAME = "tempuser"
     TEMP_USER_PASSWORD = "password"
     TEMP_USER_ROLE = "admin"
+    DST_TYPE = "dst_type"
 
     def __init__(self, config, osc=None):
         super(VolumeUpdateAction, self).__init__(config)
@@ -58,7 +61,10 @@ class VolumeUpdateAction(base.BaseAction):
     @property
     def schema(self):
         return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID): self.check_uuid
+            voluptuous.Required(self.RESOURCE_ID):
+                self.check_uuid,
+            voluptuous.Required(self.DST_TYPE):
+                voluptuous.Any(*six.string_types)
         })
 
     @property
@@ -69,7 +75,11 @@ class VolumeUpdateAction(base.BaseAction):
     def attachment_id(self):
         return self.input_parameters.get(self.RESOURCE_ID)
 
-    def migrate(self, server_id, attachment_id):
+    @property
+    def dst_type(self):
+        return self.input_parameters.get(self.DST_TYPE)
+
+    def migrate(self, server_id, attachment_id, dst_type):
         retry = CONF.zone_migration.retry
         retry_interval = CONF.zone_migration.retry_interval
         user = self.keystone.users.find(name=self.temp_user_name)
@@ -90,7 +100,7 @@ class VolumeUpdateAction(base.BaseAction):
         new_volume = cinder.volumes.create(
             self.src_volume_attr["size"],
             name=self.src_volume_attr["name"],
-            volume_type=self.src_volume_attr["volume_type"],
+            volume_type=dst_type,
             availability_zone=self.src_volume_attr["availability_zone"])
         while getattr(new_volume, 'status') != 'available':
             new_volume = cinder.volumes.get(new_volume.id)
@@ -175,7 +185,7 @@ class VolumeUpdateAction(base.BaseAction):
         self.keystone.roles.grant(role.id, user=user.id, project=project.id)
 
     def execute(self):
-        return self.migrate(self.server_id, self.attachment_id)
+        return self.migrate(self.server_id, self.attachment_id, self.dst_type)
 
     def revert(self):
         LOG.debug("Do nothing to Revert action of VolumeUpdate")
