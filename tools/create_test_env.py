@@ -58,23 +58,14 @@ for name, volume in volumes.items():
             "status": volume['status'],
             "src_hostname": volume.get('src_hostname', ''),
         }
-        if volume['status'] == 'available':
-            dst_hostname = volume.get('dst_hostname', None)
-            if dst_hostname is None:
-                print(
-                    "***[WARN]: dst_hostname is needed for: {}***".format(name),
-                    file=sys.stderr
-                )
-            else:
-                params['volume'][volume['id']]['dst_hostname'] = dst_hostname
-        if volume['status'] == 'in-use':
-            dst_type = volume.get('dst_type', None)
-            if dst_type is None:
-                print(
-                    "***[WARN]: dst_type is needed for: {}***".format(name),
-                    file=sys.stderr
-                )
-            else:
-                params['volume'][volume['id']]['dst_type'] = dst_type
+
+        dst_type = volume.get('dst_type', None)
+        if dst_type is None:
+            print(
+                "***[WARN]: dst_type is needed for: {}***".format(name),
+                file=sys.stderr
+            )
+        else:
+            params['volume'][volume['id']]['dst_type'] = dst_type
 
 print(json.dumps(params, sort_keys=True, indent=2))
