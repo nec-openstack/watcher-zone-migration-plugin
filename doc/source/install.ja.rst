@@ -42,7 +42,7 @@ zone-migrationインストール
 
     [watcher_planners.default]
     # do not add quote or double quote
-    weights = my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0, volume_migration: 0, volume_update: 0
+    weights = my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0, volume_migration: 0, volume_update: 0, volume_retry: 0
 
     [watcher_applier]
     workflow_engine = parallel
