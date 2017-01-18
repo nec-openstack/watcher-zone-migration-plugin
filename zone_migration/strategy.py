@@ -35,6 +35,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
     LIVE_MIGRATION = "live_migration"
     COLD_MIGRATION = "cold_migration"
     VOLUME_MIGRATION = "volume_migration"
+    VOLUME_RETYPE = "volume_retype"
     VOLUME_UPDATE = "volume_update"
     STATUS = "status"
     DST_HOSTNAME = "dst_hostname"
@@ -70,7 +71,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                     elif resource_status == self.AVAILABLE:
                         # detached volume with no snapshots
                         # do cinder migrate
-                        self._volume_migrate(resource_id, dst_hostname)
+                        self._volume_retype(resource_id, dst_type)
                     else:
                         raise Exception("Wrong status: %s." % resource_status)
                 else:
@@ -100,6 +101,13 @@ class ParallelMigrationStrategy(base.BaseStrategy):
         parameters = {self.DST_HOSTNAME: dst_hostname}
         self.solution.add_action(
             action_type=self.VOLUME_MIGRATION,
+            resource_id=resource_id,
+            input_parameters=parameters)
+
+    def _volume_retype(self, resource_id, dst_type):
+        parameters = {self.DST_TYPE: dst_type}
+        self.solution.add_action(
+            action_type=self.VOLUME_RETYPE,
             resource_id=resource_id,
             input_parameters=parameters)
 
@@ -139,7 +147,7 @@ class ParallelMigrationStrategy(base.BaseStrategy):
                          "volume":
                             {"cinder_id1":
                                 {"status": "available",
-                                 "dst_hostname": "volume_dest_hostname1"},
+                                 "dst_type": "volume_dst_type"},
                              "cinder_id2":
                                 {"status": "in-use",
                                  "dst_type": "volume_dst_type"}}}
