@@ -47,10 +47,8 @@ vm:
 volume:
   volume1:
     <<: *volume_default
-    # dst_hostname is needed for un-attached volume
-    dst_hostname: 'controller@lvmdriver-1#lvmdriver-1'
+    dst_type: lvmdriver-2
   volume2:
     <<: *volume_default
     attached_to: instance1
-    # dst_type is needed for attached volume
-    dst_type: lvmdriver-1
+    dst_type: lvmdriver-2

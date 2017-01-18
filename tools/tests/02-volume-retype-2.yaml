@@ -22,15 +22,18 @@ user:
 volume:
   volume-vm-01:
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    # コールドマイグレーションの場合は `dst_hostname` は必須。
-    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
+    # dst_hostname は deprecated
+    # dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
     type: lvmdriver-1
+    # dst_type は Volume 定義時に必須。
+    dst_type: lvmdriver-2
     size: 10
     user: test1
   volume-vm-02:
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    # コールドマイグレーションの場合は `dst_hostname` は必須。
-    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
+    # dst_hostname は deprecated
+    # dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
     type: lvmdriver-1
+    dst_type: lvmdriver-2
     size: 10
     user: test1

@@ -42,19 +42,17 @@ vm:
 volume:
   volume-vu-01:
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
-    # volume-update の場合は `dst_hostname` は無視される。
-    dst_hostname: 'controller@lvmdriver-2#lvmdriver-2'
     attached_to: instance-vu-01
     type: lvmdriver-1
-    # volume-update の場合は `dst_type` は必須。
-    dst_type: lvmdriver-1
+    # dst_type は Volume 定義時に必須。
+    dst_type: lvmdriver-2
     size: 3
     user: test1
   volume-vu-02:
     src_hostname: 'controller@lvmdriver-1#lvmdriver-1'
     attached_to: instance-vu-02
     type: lvmdriver-1
-    # volume-update の場合は `dst_type` は必須。
-    dst_type: lvmdriver-1
+    # dst_type は Volume 定義時に必須。
+    dst_type: lvmdriver-2
     size: 3
     user: test1
