@@ -20,6 +20,19 @@ zone-migrationインストール
     $ workon watcher
     $ pip install git+https://github.com/nec-openstack/watcher-zone-migration-plugin.git
 
+タグまたはブランチを指定するなら
+
+.. code-block:: sh
+
+    $ pip install git+https://github.com/nec-openstack/watcher-zone-migration-plugin.git@ {{ tag or branch }
+
+とする。たとえばタグ 0.1.2 を指定するなら
+
+.. code-block:: sh
+
+    $ pip install git+https://github.com/nec-openstack/watcher-zone-migration-plugin.git@0.1.2 
+
+
 設定ファイル（/etc/watcher/watcher.conf）変更
 ---------------------------------------------
 
