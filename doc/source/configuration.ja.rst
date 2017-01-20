@@ -13,7 +13,7 @@
      - 変更必須か
    * - [watcher_planners.default]
      - weights
-     - my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0,volume_migration: 0, volume_update: 0
+     - my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0,volume_migration: 0, volume_update: 0, volume_retype: 0
      - change_nova_service_state:2, migrate:3, nop:0, sleep:1
      - These weights are used to schedule the actions (dict value)
      - 必須
