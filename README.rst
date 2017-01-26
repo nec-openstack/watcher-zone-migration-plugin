@@ -24,8 +24,8 @@ You have to add configuration as the following to /etc/watcher/watcher.conf:
 .. code::
 
     [watcher_planners.default]
-    weights = my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0,
-    volume_migration: 0, volume_update: 0
+    weights = my_message: 0, nop: 0, sleep: 0, live_migration: 0, cold_migration: 0,volume_migration: 0, volume_update: 0, volume_retype: 0
+
     [watcher_applier]
     workflow_engine = parallel
 
