@@ -55,6 +55,26 @@ zone-migrationインストール
     # seconds of retry interval migrate state changes to see, default value is 5
     retry_interval = 5
 
+もしあなたの Watcher が Ocata-3 以降でNew default planner が使えるのであれば、以下の設定を行い標準のplannerをつかいましょう。
+
+.. code-block:: sh
+
+    [watcher_planners.weight]
+    # do not add quote or double quote
+    # These weights are used to schedule the actions. Action Plan will be build in
+    # accordance with sets of actions ordered by descending weights.Two action
+    # types cannot have the same weight.  (dict value)
+    weights = my_message: 100, nop: 90, sleep: 80, live_migration: 70, cold_migration: 60, volume_migration: 50, volume_update: 40, volume_retype: 30
+    # Number of actions to be run in parallel on a per action type basis. (dict
+    # value)
+    parallelization = my_message: 10, nop: 10, sleep: 10, live_migration: 10, cold_migration: 10, volume_migration: 10, volume_update: 10, volume_retype: 10
+
+    [zone_migration]
+    # Number of retries migrate state changes to see, default value is 120
+    retry = 120
+    # seconds of retry interval migrate state changes to see, default value is 5
+    retry_interval = 5
+
 サービス再起動
 ---------------
 
