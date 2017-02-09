@@ -93,6 +93,16 @@ def create_server(env, name, vm, users, timeout=300):
     else:
         az = availability_zone
 
+    userdata = vm.get('userdata', None)
+    if userdata is not None:
+        try:
+            userdata = open(userdata)
+        except IOError as e:
+            print(
+                "***[WARN]: Can't open: '{}'***".format(userdata),
+                file=sys.stderr,
+            )
+
     block_device_mapping_v2 = None
     if boot_volume:
         boot_volume['image_id'] = image.id
@@ -126,6 +136,7 @@ def create_server(env, name, vm, users, timeout=300):
             name=name,
             image=image,
             flavor=flavor,
+            userdata=userdata,
             key_name=vm['user'],
             nics=nics,
             availability_zone=az,
