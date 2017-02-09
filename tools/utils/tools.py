@@ -12,6 +12,7 @@
 #    under the License.
 
 from __future__ import print_function
+import os
 import sys
 
 from cinderclient import exceptions as cinder_exections
@@ -96,6 +97,7 @@ def create_server(env, name, vm, users, timeout=300):
     userdata = vm.get('userdata', None)
     if userdata is not None:
         try:
+            userdata = os.path.join(env.get('_env_dir', ''), userdata)
             userdata = open(userdata)
         except IOError as e:
             print(
