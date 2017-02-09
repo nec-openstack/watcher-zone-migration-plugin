@@ -1,0 +1,6 @@
+#cloud-config
+
+# Launch server (192.168.11.197) before execute this script.
+# cf: nc -l -p 9090
+runcmd:
+  - [ 'yes | nc 192.168.11.197 9090']

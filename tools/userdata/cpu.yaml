@@ -1,0 +1,4 @@
+#cloud-config
+
+runcmd:
+  - [ openssl, speed, -multi, "$(grep processor /proc/cpuinfo|wc -l)"]
