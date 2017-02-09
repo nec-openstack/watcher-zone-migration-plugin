@@ -22,7 +22,8 @@ from utils import tools
 
 env_file = sys.argv[1]
 target_env = common.load_target_env(env_file)
-target_env['_env_dir'] = os.path.dirname(env_file)
+# Change current directory to env_file dir
+os.chdir(os.path.dirname(env_file))
 
 admin = target_env['env'].get('admin', None)
 if admin is None:
